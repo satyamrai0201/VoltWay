@@ -17,177 +17,227 @@ export default function Orb3D() {
     
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
-    renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     
     camera.position.z = 2.5;
 
-    // Create glossy lime core sphere
-    const coreGeometry = new THREE.IcosahedronGeometry(0.8, 24);
-    const coreMaterial = new THREE.MeshStandardMaterial({
+    // Create glowing core - intense lime energy
+    const coreGeometry = new THREE.IcosahedronGeometry(0.6, 32);
+    const coreMaterial = new THREE.MeshBasicMaterial({
       color: 0xccff00,
-      emissive: 0xccff00,
-      emissiveIntensity: 0.15,
-      metalness: 0.4,
-      roughness: 0.15,
       wireframe: false,
     });
     const core = new THREE.Mesh(coreGeometry, coreMaterial);
     scene.add(core);
 
-    // Create white metallic outer shell
-    const shellGeometry = new THREE.IcosahedronGeometry(1.0, 20);
-    const shellMaterial = new THREE.MeshStandardMaterial({
-      color: 0xe8e8e8,
-      emissive: 0x555555,
-      emissiveIntensity: 0.05,
-      metalness: 0.7,
-      roughness: 0.25,
-      wireframe: false,
+    // Inner glow - ultra bright
+    const innerGlowGeometry = new THREE.SphereGeometry(0.65, 32, 32);
+    const innerGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xccff00,
+      transparent: true,
+      opacity: 0.3,
     });
-    const shell = new THREE.Mesh(shellGeometry, shellMaterial);
-    scene.add(shell);
+    const innerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
+    scene.add(innerGlow);
 
-    // Create band wraps - these are tori that wrap around
-    const createBand = (offsetX: number, offsetY: number, rotation: number, color: number) => {
-      const bandGeometry = new THREE.TorusGeometry(1.1, 0.15, 16, 32);
-      const bandMaterial = new THREE.MeshStandardMaterial({
-        color: color,
-        emissive: color === 0xccff00 ? 0xccff00 : 0xaaaaaa,
-        emissiveIntensity: color === 0xccff00 ? 0.2 : 0.05,
-        metalness: 0.5,
-        roughness: 0.3,
-        wireframe: false,
-      });
-      const band = new THREE.Mesh(bandGeometry, bandMaterial);
-      band.rotation.x = offsetX;
-      band.rotation.y = offsetY;
-      band.rotation.z = rotation;
-      scene.add(band);
-      return band;
-    };
+    // Mid glow layer
+    const midGlowGeometry = new THREE.SphereGeometry(0.85, 32, 32);
+    const midGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xccff00,
+      transparent: true,
+      opacity: 0.15,
+    });
+    const midGlow = new THREE.Mesh(midGlowGeometry, midGlowMaterial);
+    scene.add(midGlow);
 
-    const band1 = createBand(0.7, 0.3, 0.5, 0xe8e8e8);
-    const band2 = createBand(0.2, 0.8, 1.2, 0xccff00);
-    const band3 = createBand(-0.6, 0.4, 0.8, 0xe8e8e8);
-    const band4 = createBand(0.4, -0.5, 1.5, 0xccff00);
+    // Outer energy halo
+    const outerGlowGeometry = new THREE.SphereGeometry(1.1, 32, 32);
+    const outerGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xccff00,
+      transparent: true,
+      opacity: 0.08,
+    });
+    const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+    scene.add(outerGlow);
 
-    // Create thin wireframe curves
-    const createWireframeRing = (radius: number, thickness: number, color: number) => {
-      const curvePoints = [];
-      for (let i = 0; i <= 64; i++) {
-        const angle = (i / 64) * Math.PI * 2;
-        curvePoints.push(
-          new THREE.Vector3(
-            Math.cos(angle) * radius,
-            Math.sin(angle) * radius * 0.3,
-            Math.sin(angle) * radius * 0.3
-          )
-        );
-      }
-      
-      const curve = new THREE.CatmullRomCurve3(curvePoints);
-      const points = curve.getPoints(100);
-      const geometry = new THREE.BufferGeometry().setFromPoints(points);
-      const material = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
-      const line = new THREE.Line(geometry, material);
-      scene.add(line);
-      return line;
-    };
-
-    const wireframe1 = createWireframeRing(1.3, 2, 0xccff00);
-    const wireframe2 = createWireframeRing(1.35, 2, 0xaaaaaa);
-    wireframe2.rotation.z = Math.PI / 4;
-
-    // Create reflective surfaces/planes for additional depth
-    const planeGeometry = new THREE.PlaneGeometry(0.8, 0.8, 8, 8);
-    const planeMaterial = new THREE.MeshStandardMaterial({
+    // Energy field - wireframe sphere with pulsing
+    const fieldGeometry = new THREE.IcosahedronGeometry(0.95, 24);
+    const fieldMaterial = new THREE.MeshPhongMaterial({
       color: 0xccff00,
       emissive: 0xccff00,
-      emissiveIntensity: 0.1,
-      metalness: 0.3,
-      roughness: 0.1,
-      wireframe: false,
-      side: THREE.DoubleSide,
+      emissiveIntensity: 0.5,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.4,
     });
+    const field = new THREE.Mesh(fieldGeometry, fieldMaterial);
+    scene.add(field);
 
-    // Position planes to create the band effect
-    const plane1 = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane1.rotation.y = 0.3;
-    plane1.position.set(0, 0.4, 0);
-    scene.add(plane1);
+    // Create swirling energy bands
+    const createEnergyBand = (rotationAxis: string, offset: number) => {
+      const bandGeometry = new THREE.TorusGeometry(1.2, 0.08, 16, 64);
+      const bandMaterial = new THREE.MeshPhongMaterial({
+        color: 0xccff00,
+        emissive: 0xccff00,
+        emissiveIntensity: 0.8,
+        wireframe: false,
+        transparent: true,
+        opacity: 0.7,
+      });
+      const band = new THREE.Mesh(bandGeometry, bandMaterial);
+      
+      if (rotationAxis === 'x') band.rotation.x = offset;
+      else if (rotationAxis === 'y') band.rotation.y = offset;
+      else band.rotation.z = offset;
+      
+      scene.add(band);
+      return { mesh: band, axis: rotationAxis };
+    };
 
-    const plane2 = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane2.rotation.y = -0.3;
-    plane2.position.set(0, -0.4, 0);
-    scene.add(plane2);
+    const bands = [
+      createEnergyBand('x', 0),
+      createEnergyBand('y', Math.PI / 3),
+      createEnergyBand('z', (2 * Math.PI) / 3),
+      createEnergyBand('x', Math.PI / 2),
+    ];
 
-    // Advanced lighting for realistic reflections
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Create particle effect
+    const particleCount = 150;
+    const particleGeometry = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleVelocities = new Float32Array(particleCount * 3);
+    
+    for (let i = 0; i < particleCount * 3; i += 3) {
+      const angle1 = Math.random() * Math.PI * 2;
+      const angle2 = Math.random() * Math.PI * 2;
+      const radius = 0.8 + Math.random() * 0.5;
+      
+      particlePositions[i] = Math.cos(angle1) * Math.cos(angle2) * radius;
+      particlePositions[i + 1] = Math.sin(angle1) * Math.cos(angle2) * radius;
+      particlePositions[i + 2] = Math.sin(angle2) * radius;
+      
+      particleVelocities[i] = (Math.random() - 0.5) * 0.02;
+      particleVelocities[i + 1] = (Math.random() - 0.5) * 0.02;
+      particleVelocities[i + 2] = (Math.random() - 0.5) * 0.02;
+    }
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    
+    const particleMaterial = new THREE.PointsMaterial({
+      color: 0xccff00,
+      size: 0.08,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.8,
+    });
+    
+    const particles = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particles);
+
+    // Intense lighting for energy ball effect
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     scene.add(ambientLight);
 
-    // Key light - lime from top right
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    keyLight.position.set(4, 4, 4);
-    scene.add(keyLight);
+    // Dominant lime light
+    const limeLight = new THREE.PointLight(0xccff00, 2.5, 50);
+    limeLight.position.set(0, 0, 0);
+    scene.add(limeLight);
 
-    // Fill light - from left
-    const fillLight = new THREE.DirectionalLight(0xccff00, 0.9);
-    fillLight.position.set(-5, 2, 1);
-    scene.add(fillLight);
+    // Secondary lime light from different angle
+    const limeLight2 = new THREE.PointLight(0xccff00, 1.5, 50);
+    limeLight2.position.set(5, 5, 5);
+    scene.add(limeLight2);
 
-    // Back light
-    const backLight = new THREE.DirectionalLight(0x5577ff, 0.6);
-    backLight.position.set(-2, -2, -4);
-    scene.add(backLight);
+    // Blue/white light for contrast
+    const blueLight = new THREE.PointLight(0x5588ff, 0.8, 50);
+    blueLight.position.set(-4, -4, 3);
+    scene.add(blueLight);
 
-    // Point lights for highlights
-    const pointLight = new THREE.PointLight(0xffffff, 0.8, 100);
-    pointLight.position.set(6, 6, 6);
-    scene.add(pointLight);
-
-    const accentLight = new THREE.PointLight(0xccff00, 0.5, 100);
-    accentLight.position.set(-6, -6, 4);
-    scene.add(accentLight);
-
-    // Animation loop
+    // Animation variables
     let animationFrameId: number;
+    const time = { value: 0 };
+
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      time.value += 0.01;
 
-      // Rotate core
-      core.rotation.x += 0.002;
-      core.rotation.y += 0.003;
+      // Rotate core fast
+      core.rotation.x += 0.005;
+      core.rotation.y += 0.008;
+      core.rotation.z += 0.003;
 
-      // Rotate shell
-      shell.rotation.x -= 0.0015;
-      shell.rotation.y -= 0.0025;
+      // Rotate inner glow
+      innerGlow.rotation.x -= 0.003;
+      innerGlow.rotation.y -= 0.005;
 
-      // Rotate bands with different speeds for dynamic effect
-      band1.rotation.x += 0.004;
-      band1.rotation.y += 0.002;
+      // Rotate mid glow opposite direction
+      midGlow.rotation.x += 0.002;
+      midGlow.rotation.y += 0.004;
+      midGlow.rotation.z -= 0.003;
+
+      // Rotate outer glow slowly
+      outerGlow.rotation.z += 0.001;
+
+      // Rotate energy field
+      field.rotation.x += 0.004;
+      field.rotation.y += 0.006;
+
+      // Rotate energy bands at different speeds
+      bands.forEach((band, index) => {
+        if (band.axis === 'x') {
+          band.mesh.rotation.x += 0.01 + index * 0.002;
+        } else if (band.axis === 'y') {
+          band.mesh.rotation.y += 0.008 + index * 0.001;
+        } else {
+          band.mesh.rotation.z += 0.012 - index * 0.002;
+        }
+      });
+
+      // Update particles
+      const positions = particleGeometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        // Update position with velocity
+        positions[i] += particleVelocities[i];
+        positions[i + 1] += particleVelocities[i + 1];
+        positions[i + 2] += particleVelocities[i + 2];
+
+        // Recirculate particles that go too far
+        const dist = Math.sqrt(positions[i] ** 2 + positions[i + 1] ** 2 + positions[i + 2] ** 2);
+        if (dist > 1.5) {
+          const angle1 = Math.random() * Math.PI * 2;
+          const angle2 = Math.random() * Math.PI * 2;
+          const radius = 0.8 + Math.random() * 0.5;
+          
+          positions[i] = Math.cos(angle1) * Math.cos(angle2) * radius;
+          positions[i + 1] = Math.sin(angle1) * Math.cos(angle2) * radius;
+          positions[i + 2] = Math.sin(angle2) * radius;
+        }
+
+        // Add slight curve to movement
+        particleVelocities[i] += (Math.random() - 0.5) * 0.003;
+        particleVelocities[i + 1] += (Math.random() - 0.5) * 0.003;
+        particleVelocities[i + 2] += (Math.random() - 0.5) * 0.003;
+
+        // Dampen velocity
+        particleVelocities[i] *= 0.98;
+        particleVelocities[i + 1] *= 0.98;
+        particleVelocities[i + 2] *= 0.98;
+      }
+      particleGeometry.attributes.position.needsUpdate = true;
+
+      // Pulse effect on glows
+      const pulse = 0.9 + Math.sin(time.value * 2) * 0.15;
+      innerGlow.scale.set(pulse, pulse, pulse);
       
-      band2.rotation.x -= 0.003;
-      band2.rotation.z += 0.004;
-      
-      band3.rotation.y += 0.0035;
-      band3.rotation.z -= 0.002;
-      
-      band4.rotation.x += 0.0025;
-      band4.rotation.y -= 0.003;
+      const pulse2 = 0.95 + Math.sin(time.value * 1.5 + Math.PI / 4) * 0.12;
+      midGlow.scale.set(pulse2, pulse2, pulse2);
 
-      // Rotate wireframes
-      wireframe1.rotation.z += 0.003;
-      wireframe2.rotation.z -= 0.002;
-      wireframe2.rotation.x += 0.001;
+      const pulse3 = 0.98 + Math.sin(time.value * 1.2 + Math.PI / 2) * 0.08;
+      outerGlow.scale.set(pulse3, pulse3, pulse3);
 
-      // Rotate planes
-      plane1.rotation.y += 0.002;
-      plane2.rotation.y -= 0.002;
-
-      // Subtle pulsing
-      const scale = 0.98 + Math.sin(Date.now() * 0.0006) * 0.02;
-      core.scale.set(scale, scale, scale);
+      // Pulsing particle size
+      const particleSize = 0.06 + Math.sin(time.value * 1.5) * 0.04;
+      particleMaterial.size = particleSize;
 
       renderer.render(scene, camera);
     };
@@ -211,12 +261,6 @@ export default function Orb3D() {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
       renderer.dispose();
-      coreGeometry.dispose();
-      coreMaterial.dispose();
-      shellGeometry.dispose();
-      shellMaterial.dispose();
-      planeGeometry.dispose();
-      planeMaterial.dispose();
       if (containerRef.current?.contains(renderer.domElement)) {
         containerRef.current.removeChild(renderer.domElement);
       }
