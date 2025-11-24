@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Play, Zap } from "lucide-react";
+import { Play } from "lucide-react";
 import stationVideoUrl from "@assets/generated_videos/ev_charging_station_neon_night_scene.mp4";
+import Orb3D from "./Orb3D";
 
 interface HeroSectionProps {
   onHowItWorksClick?: () => void;
@@ -101,20 +102,8 @@ export default function HeroSection({ onHowItWorksClick, onGetStartedClick }: He
             transition={{ duration: 0.8, delay: 0.4 }}
             className="relative hidden lg:block"
           >
-            <div className="relative aspect-square bg-gradient-to-br from-primary/20 via-primary/10 to-background rounded-3xl shadow-2xl flex items-center justify-center border border-primary/20">
-              <motion.div
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Zap size={120} className="text-primary/40" />
-              </motion.div>
+            <div className="relative aspect-square bg-gradient-to-br from-primary/20 via-primary/10 to-background rounded-3xl shadow-2xl flex items-center justify-center border border-primary/20 overflow-hidden">
+              <Orb3D />
             </div>
           </motion.div>
         </div>
