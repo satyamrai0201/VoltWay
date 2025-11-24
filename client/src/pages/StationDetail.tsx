@@ -86,10 +86,11 @@ export default function StationDetail() {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       setIsProcessing(false);
       
-      // Close dialog first
+      // Close dialog immediately
       setIsPaymentOpen(false);
+      setIsBookingOpen(false);
       
-      // Then show animation after dialog closes
+      // Show animation after dialog fully closes (dialog has 300ms close animation)
       setTimeout(() => {
         setIsPaymentSuccess(true);
         
@@ -97,10 +98,9 @@ export default function StationDetail() {
         setTimeout(() => {
           resetForm();
           setIsPaymentSuccess(false);
-          setIsBookingOpen(false);
           navigate("/bookings");
-        }, 3000);
-      }, 300);
+        }, 2800);
+      }, 350);
     },
     onError: () => {
       setIsProcessing(false);
@@ -692,85 +692,114 @@ export default function StationDetail() {
 
           {/* Payment Success Animation - Full Screen */}
           {isPaymentSuccess && (
-            <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-300">
-              <div className="text-center space-y-8">
-                <svg width="120" height="120" viewBox="0 0 120 120" className="mx-auto">
-                  {/* Outer rotating circle - subtle */}
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="50"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    style={{
-                      color: "#CCFF00",
-                      opacity: 0.2,
-                      animation: "spin 3s linear infinite",
-                    }}
-                  />
-                  
-                  {/* Main circle */}
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="50"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    style={{
-                      color: "#CCFF00",
-                      strokeDasharray: "314",
-                      strokeDashoffset: "314",
-                      animation: "fillCircle 1s ease-out forwards 0.2s",
-                    }}
-                  />
-                  
-                  {/* Checkmark */}
-                  <path
-                    d="M 35 60 L 50 75 L 85 40"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{
-                      color: "#CCFF00",
-                      strokeDasharray: "80",
-                      strokeDashoffset: "80",
-                      animation: "drawCheckmark 0.8s ease-out forwards 0.8s",
-                    }}
-                  />
-                  
-                  <style>{`
-                    @keyframes fillCircle {
-                      to {
-                        stroke-dashoffset: 0;
-                      }
-                    }
-                    
-                    @keyframes drawCheckmark {
-                      to {
-                        stroke-dashoffset: 0;
-                      }
-                    }
-                    
-                    @keyframes spin {
-                      from {
-                        transform: rotate(0deg);
-                        transform-origin: 50% 50%;
-                      }
-                      to {
-                        transform: rotate(360deg);
-                        transform-origin: 50% 50%;
-                      }
-                    }
-                  `}</style>
-                </svg>
+            <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-500">
+              <style>{`
+                @keyframes pulseGlow {
+                  0%, 100% {
+                    filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.4));
+                  }
+                  50% {
+                    filter: drop-shadow(0 0 40px rgba(204, 255, 0, 0.6));
+                  }
+                }
                 
-                <div className="space-y-2 animate-in fade-in duration-500" style={{ animationDelay: "1.2s" }}>
-                  <h1 className="text-5xl font-bold" style={{ color: "#CCFF00" }}>Payment Successful!</h1>
-                  <p className="text-xl text-muted-foreground">Your booking has been confirmed</p>
+                @keyframes scaleInCircle {
+                  0% {
+                    transform: scale(0);
+                    opacity: 0;
+                  }
+                  100% {
+                    transform: scale(1);
+                    opacity: 1;
+                  }
+                }
+                
+                @keyframes drawCheckmark {
+                  0% {
+                    stroke-dashoffset: 150;
+                  }
+                  100% {
+                    stroke-dashoffset: 0;
+                  }
+                }
+                
+                @keyframes slideUpText {
+                  0% {
+                    opacity: 0;
+                    transform: translateY(20px);
+                  }
+                  100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                  }
+                }
+              `}</style>
+              
+              <div className="text-center space-y-6">
+                {/* Large animated tick with glow */}
+                <div 
+                  style={{
+                    animation: "scaleInCircle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, pulseGlow 2s ease-in-out 0.6s infinite",
+                    display: "inline-block",
+                  }}
+                >
+                  <svg width="200" height="200" viewBox="0 0 200 200" className="mx-auto">
+                    {/* Outer glow circle */}
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="90"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="1"
+                      opacity="0.3"
+                    />
+                    
+                    {/* Main circle - draws in */}
+                    <circle
+                      cx="100"
+                      cy="100"
+                      r="90"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="3"
+                      strokeDasharray="565"
+                      strokeDashoffset="565"
+                      strokeLinecap="round"
+                      style={{
+                        animation: "drawCheckmark 1s ease-out forwards 0.2s",
+                      }}
+                    />
+                    
+                    {/* Checkmark - draws in */}
+                    <path
+                      d="M 60 100 L 85 125 L 140 70"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="200"
+                      strokeDashoffset="200"
+                      style={{
+                        animation: "drawCheckmark 0.8s ease-out forwards 0.8s",
+                      }}
+                    />
+                  </svg>
+                </div>
+                
+                {/* Text that fades in after animation */}
+                <div 
+                  style={{
+                    animation: "slideUpText 0.6s ease-out forwards 1.8s",
+                    opacity: 0,
+                  }}
+                >
+                  <h1 className="text-6xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.02em" }}>
+                    Payment Successful!
+                  </h1>
+                  <p className="text-xl text-muted-foreground mt-4">Your booking has been confirmed</p>
+                  <p className="text-sm text-muted-foreground/70 mt-2">Redirecting to your bookings...</p>
                 </div>
               </div>
             </div>
