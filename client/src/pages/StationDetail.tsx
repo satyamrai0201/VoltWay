@@ -94,12 +94,12 @@ export default function StationDetail() {
       setTimeout(() => {
         setIsPaymentSuccess(true);
         
-        // Auto-redirect to bookings after tick animation completes
+        // Auto-redirect to bookings after 3 seconds
         setTimeout(() => {
           resetForm();
           setIsPaymentSuccess(false);
           navigate("/bookings");
-        }, 2800);
+        }, 3000);
       }, 350);
     },
     onError: () => {
@@ -690,35 +690,13 @@ export default function StationDetail() {
             </DialogContent>
           </Dialog>
 
-          {/* Payment Success Animation - Full Screen */}
+          {/* Payment Success Screen */}
           {isPaymentSuccess && (
-            <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-500">
+            <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-300">
               <style>{`
-                @keyframes neonGlow {
-                  0%, 100% {
-                    filter: drop-shadow(0 0 15px #CCFF00) drop-shadow(0 0 30px #CCFF0080);
-                  }
-                  50% {
-                    filter: drop-shadow(0 0 40px #CCFF00) drop-shadow(0 0 80px #CCFF00AA);
-                  }
-                }
-                
-                @keyframes pulseRing {
+                @keyframes scaleCheckmark {
                   0% {
-                    r: 85;
-                    stroke-width: 3.5;
-                    opacity: 1;
-                  }
-                  100% {
-                    r: 115;
-                    stroke-width: 1;
-                    opacity: 0;
-                  }
-                }
-                
-                @keyframes scaleInSmooth {
-                  0% {
-                    transform: scale(0.3);
+                    transform: scale(0);
                     opacity: 0;
                   }
                   100% {
@@ -727,30 +705,10 @@ export default function StationDetail() {
                   }
                 }
                 
-                @keyframes chargeFill {
+                @keyframes fadeInUp {
                   0% {
                     opacity: 0;
-                    filter: drop-shadow(0 0 0px #CCFF00);
-                  }
-                  100% {
-                    opacity: 1;
-                    filter: drop-shadow(0 0 20px #CCFF00);
-                  }
-                }
-                
-                @keyframes chargeGlow {
-                  0%, 100% {
-                    filter: drop-shadow(0 0 15px #CCFF00);
-                  }
-                  50% {
-                    filter: drop-shadow(0 0 35px #CCFF00);
-                  }
-                }
-                
-                @keyframes slideUpText {
-                  0% {
-                    opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(10px);
                   }
                   100% {
                     opacity: 1;
@@ -759,91 +717,49 @@ export default function StationDetail() {
                 }
               `}</style>
               
-              <div className="text-center space-y-8">
-                {/* Animated neon charging icon */}
-                <div 
-                  style={{
-                    animation: "scaleInSmooth 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, neonGlow 3s ease-in-out 0.7s infinite",
-                    display: "inline-block",
-                  }}
-                >
-                  <svg width="260" height="260" viewBox="0 0 260 260" className="mx-auto">
-                    {/* Pulsing ring effect */}
-                    <circle
-                      cx="130"
-                      cy="130"
-                      r="85"
+              <div className="max-w-md w-full mx-4 text-center space-y-6">
+                {/* Checkmark Icon */}
+                <div style={{ animation: "scaleCheckmark 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards" }}>
+                  <svg width="80" height="80" viewBox="0 0 80 80" className="mx-auto">
+                    <circle cx="40" cy="40" r="38" fill="none" stroke="#CCFF00" strokeWidth="2" />
+                    <path
+                      d="M 25 40 L 35 50 L 55 30"
                       fill="none"
                       stroke="#CCFF00"
-                      strokeWidth="3.5"
-                      style={{
-                        animation: "pulseRing 1.8s ease-out infinite",
-                        opacity: 1,
-                      }}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
-                    
-                    {/* Static outer rings for structure */}
-                    <circle
-                      cx="130"
-                      cy="130"
-                      r="100"
-                      fill="none"
-                      stroke="#CCFF00"
-                      strokeWidth="1.5"
-                      opacity="0.4"
-                    />
-                    
-                    <circle
-                      cx="130"
-                      cy="130"
-                      r="85"
-                      fill="none"
-                      stroke="#CCFF00"
-                      strokeWidth="2"
-                      opacity="0.6"
-                    />
-                    
-                    {/* Beautiful Lightning Bolt Icon */}
-                    <g style={{
-                      animation: "chargeFill 0.8s ease-out forwards 0.6s, chargeGlow 2.5s ease-in-out 1.4s infinite",
-                      opacity: 0,
-                    }}>
-                      {/* Outer glow path */}
-                      <path
-                        d="M 130 35 L 110 95 L 140 95 L 90 210 L 150 130 L 120 130 Z"
-                        fill="none"
-                        stroke="#CCFF00"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.4"
-                      />
-                      
-                      {/* Main lightning bolt - thick and vibrant */}
-                      <path
-                        d="M 130 35 L 110 95 L 140 95 L 90 210 L 150 130 L 120 130 Z"
-                        fill="#CCFF00"
-                        opacity="1"
-                        style={{
-                          filter: "drop-shadow(0 0 2px #CCFF00)",
-                        }}
-                      />
-                    </g>
                   </svg>
                 </div>
-                
-                {/* Success text - fades in smoothly */}
-                <div 
-                  style={{
-                    animation: "slideUpText 0.8s ease-out forwards 1.8s",
-                    opacity: 0,
-                  }}
-                >
-                  <h1 className="text-8xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.02em", lineHeight: 1, textShadow: "0 0 40px rgba(204, 255, 0, 0.4)" }}>
-                    Payment Successful!
-                  </h1>
-                  <p className="text-xl text-muted-foreground mt-6" style={{ fontWeight: 300, letterSpacing: "0.05em" }}>Your booking is confirmed</p>
+
+                {/* Title */}
+                <div style={{ animation: "fadeInUp 0.5s ease-out forwards 0.2s", opacity: 0 }}>
+                  <h1 className="text-3xl font-bold text-foreground">Payment Successful</h1>
+                  <p className="text-muted-foreground mt-2">Thank you for your booking!</p>
                 </div>
+
+                {/* Details Card */}
+                <div 
+                  style={{ animation: "fadeInUp 0.5s ease-out forwards 0.4s", opacity: 0 }}
+                  className="bg-card border border-border rounded-lg p-6 space-y-3"
+                >
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Amount Paid:</span>
+                    <span className="font-semibold text-foreground">₹{totalPrice}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Date & Time:</span>
+                    <span className="font-semibold text-foreground">{format(new Date(), "MMM dd, yyyy, hh:mm a")}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Reference Number:</span>
+                    <span className="font-semibold text-foreground font-mono">{pendingBookingData?.stationId?.slice(0, 10)}</span>
+                  </div>
+                </div>
+
+                {/* Redirect Message */}
+                <p className="text-xs text-muted-foreground/70">Redirecting to your bookings...</p>
               </div>
             </div>
           )}
