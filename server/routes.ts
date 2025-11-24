@@ -152,6 +152,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/bookings", async (req, res) => {
+    try {
+      // Return all bookings for real-time dashboard updates
+      const bookings = await storage.getAllBookings();
+      res.json(bookings);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bookings" });
+    }
+  });
+
   app.get("/api/bookings/user/:userId", async (req, res) => {
     try {
       const bookings = await storage.getBookingsByUser(req.params.userId);

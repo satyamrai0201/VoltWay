@@ -6,15 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
-import type { Station } from "@shared/schema";
+import type { Station, Booking } from "@shared/schema";
 import { Link } from "wouter";
 
 export default function HostDashboard() {
   const { user } = useAuth();
 
-  const { data: stations, isLoading } = useQuery<Station[]>({
+  const { data: stations, isLoading: stationsLoading } = useQuery<Station[]>({
     queryKey: ["/api/host", user?.id, "stations"],
     enabled: !!user,
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
+  });
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
+    queryKey: ["/api/bookings"],
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time updates
   });
 
   const myStations = stations || [];
@@ -23,7 +29,13 @@ export default function HostDashboard() {
   const averageRating = myStations.length > 0
     ? (myStations.reduce((sum, s) => sum + (parseFloat(s.rating || "0")), 0) / myStations.length).toFixed(1)
     : "0";
-  const totalRevenue = "₹24,580";
+  
+  // Calculate revenue from bookings for this host's stations
+  const myStationIds = new Set(myStations.map(s => s.id));
+  const hostBookings = bookings.filter(b => myStationIds.has(b.stationId) && b.paymentStatus === "paid");
+  const totalRevenue = hostBookings.length > 0
+    ? `₹${hostBookings.reduce((sum, b) => sum + (parseFloat(b.totalPrice) || 0), 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`
+    : "₹0";
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -54,7 +66,9 @@ export default function HostDashboard() {
                 <MapPin className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold" data-testid="stat-total-stations">{totalStations}</div>
+                <div className="text-3xl font-bold" data-testid="stat-total-stations">
+                  {stationsLoading ? <Skeleton className="h-8 w-8" /> : totalStations}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Across all locations
                 </p>
@@ -67,7 +81,9 @@ export default function HostDashboard() {
                 <Zap className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold" data-testid="stat-total-slots">{totalSlots}</div>
+                <div className="text-3xl font-bold" data-testid="stat-total-slots">
+                  {stationsLoading ? <Skeleton className="h-8 w-8" /> : totalSlots}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Charging points available
                 </p>
@@ -80,7 +96,9 @@ export default function HostDashboard() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold" data-testid="stat-avg-rating">{averageRating}</div>
+                <div className="text-3xl font-bold" data-testid="stat-avg-rating">
+                  {stationsLoading ? <Skeleton className="h-8 w-8" /> : averageRating}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Out of 5.0
                 </p>
@@ -93,9 +111,11 @@ export default function HostDashboard() {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold" data-testid="stat-revenue">{totalRevenue}</div>
+                <div className="text-3xl font-bold text-primary" data-testid="stat-revenue">
+                  {bookingsLoading ? <Skeleton className="h-8 w-12" /> : totalRevenue}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  This month
+                  From paid bookings
                 </p>
               </CardContent>
             </Card>
@@ -103,7 +123,7 @@ export default function HostDashboard() {
 
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">Your Stations</h2>
-            {isLoading ? (
+            {stationsLoading ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {[1, 2].map((i) => (
                   <Card key={i}>

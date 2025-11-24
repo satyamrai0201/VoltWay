@@ -25,6 +25,7 @@ export interface IStorage {
   searchStations(params: { city?: string; chargerType?: string; minPower?: number }): Promise<Station[]>;
   
   getBooking(id: string): Promise<Booking | undefined>;
+  getAllBookings(): Promise<Booking[]>;
   getBookingsByUser(userId: string): Promise<Booking[]>;
   getBookingsByStation(stationId: string): Promise<Booking[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -153,6 +154,7 @@ export class MemStorage implements IStorage {
         availableSlots: 3,
         amenities: ["Shopping", "WiFi", "Restroom", "Parking"],
         isActive: true,
+        isHomeStation: true,
         rating: "4.60",
         totalReviews: 89,
         createdAt: new Date(),
@@ -219,6 +221,7 @@ export class MemStorage implements IStorage {
         availableSlots: 7,
         amenities: ["Solar Panels", "Garden", "WiFi", "Parking"],
         isActive: true,
+        isHomeStation: true,
         rating: "4.65",
         totalReviews: 112,
         createdAt: new Date(),
@@ -263,6 +266,7 @@ export class MemStorage implements IStorage {
         availableSlots: 6,
         amenities: ["WiFi", "Parking", "Restroom", "Business Lounge"],
         isActive: true,
+        isHomeStation: true,
         rating: "4.72",
         totalReviews: 156,
         createdAt: new Date(),
@@ -307,6 +311,7 @@ export class MemStorage implements IStorage {
         availableSlots: 4,
         amenities: ["WiFi", "Valet Parking", "Lounge", "Restroom"],
         isActive: true,
+        isHomeStation: true,
         rating: "4.88",
         totalReviews: 178,
         createdAt: new Date(),
@@ -606,6 +611,11 @@ export class MemStorage implements IStorage {
   async getBookingsByStation(stationId: string): Promise<Booking[]> {
     return Array.from(this.bookings.values())
       .filter(b => b.stationId === stationId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getAllBookings(): Promise<Booking[]> {
+    return Array.from(this.bookings.values())
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 

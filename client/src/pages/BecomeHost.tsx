@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { MapPin, Zap, DollarSign, Image as ImageIcon } from "lucide-react";
+import { MapPin, Zap, DollarSign, Image as ImageIcon, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,6 +37,7 @@ const formSchema = insertStationSchema.extend({
   latitude: z.string(),
   longitude: z.string(),
   pricePerHour: z.string(),
+  isHomeStation: z.boolean().default(false),
 });
 
 export default function BecomeHost() {
@@ -62,6 +64,7 @@ export default function BecomeHost() {
       powerOutput: 0,
       pricePerHour: "",
       availableSlots: 1,
+      isHomeStation: false,
     },
   });
 
@@ -76,7 +79,9 @@ export default function BecomeHost() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate all relevant queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/stations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/host", user?.id, "stations"] });
       toast({
         title: "Station created!",
         description: "Your charging station has been listed successfully.",
@@ -413,6 +418,28 @@ export default function BecomeHost() {
                       ))}
                     </div>
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="isHomeStation"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-3 space-y-0 pt-4">
+                        <FormControl>
+                          <Checkbox 
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-home-station"
+                          />
+                        </FormControl>
+                        <div className="flex-1">
+                          <FormLabel className="cursor-pointer font-semibold">Mark as Home Station</FormLabel>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Home stations feature normal chargers with low rates for community users
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
