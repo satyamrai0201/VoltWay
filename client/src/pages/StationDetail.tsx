@@ -694,29 +694,56 @@ export default function StationDetail() {
           {isPaymentSuccess && (
             <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-500">
               <style>{`
-                @keyframes pulseGlow {
+                @keyframes neonGlow {
                   0%, 100% {
-                    filter: drop-shadow(0 0 20px rgba(204, 255, 0, 0.4));
+                    filter: drop-shadow(0 0 10px #CCFF00) drop-shadow(0 0 20px #CCFF0066);
                   }
                   50% {
-                    filter: drop-shadow(0 0 40px rgba(204, 255, 0, 0.6));
+                    filter: drop-shadow(0 0 30px #CCFF00) drop-shadow(0 0 60px #CCFF0099);
                   }
                 }
                 
-                @keyframes scaleInCircle {
+                @keyframes pulseCircles {
                   0% {
-                    transform: scale(0);
-                    opacity: 0;
+                    r: 90;
+                    opacity: 0.3;
+                  }
+                  50% {
+                    r: 110;
+                    opacity: 0.1;
                   }
                   100% {
-                    transform: scale(1);
+                    r: 130;
+                    opacity: 0;
+                  }
+                }
+                
+                @keyframes scaleInBounce {
+                  0% {
+                    transform: scale(0) rotate(-180deg);
+                    opacity: 0;
+                  }
+                  60% {
+                    transform: scale(1.2) rotate(0deg);
+                  }
+                  100% {
+                    transform: scale(1) rotate(0deg);
                     opacity: 1;
                   }
                 }
                 
-                @keyframes drawCheckmark {
+                @keyframes chargeFlash {
+                  0%, 100% {
+                    opacity: 1;
+                  }
+                  50% {
+                    opacity: 0.6;
+                  }
+                }
+                
+                @keyframes drawBolt {
                   0% {
-                    stroke-dashoffset: 150;
+                    stroke-dashoffset: 300;
                   }
                   100% {
                     stroke-dashoffset: 0;
@@ -726,7 +753,7 @@ export default function StationDetail() {
                 @keyframes slideUpText {
                   0% {
                     opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(30px);
                   }
                   100% {
                     opacity: 1;
@@ -736,70 +763,102 @@ export default function StationDetail() {
               `}</style>
               
               <div className="text-center space-y-6">
-                {/* Large animated tick with glow */}
+                {/* Animated neon charging icon with multiple circles */}
                 <div 
                   style={{
-                    animation: "scaleInCircle 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, pulseGlow 2s ease-in-out 0.6s infinite",
+                    animation: "scaleInBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, neonGlow 2s ease-in-out 0.8s infinite",
                     display: "inline-block",
+                    position: "relative",
                   }}
                 >
-                  <svg width="200" height="200" viewBox="0 0 200 200" className="mx-auto">
-                    {/* Outer glow circle */}
+                  <svg width="240" height="240" viewBox="0 0 240 240" className="mx-auto">
+                    {/* Pulsing outer circles */}
                     <circle
-                      cx="100"
-                      cy="100"
+                      cx="120"
+                      cy="120"
                       r="90"
                       fill="none"
                       stroke="#CCFF00"
                       strokeWidth="1"
-                      opacity="0.3"
+                      style={{
+                        animation: "pulseCircles 2s ease-out infinite",
+                        opacity: 0.3,
+                      }}
+                    />
+                    
+                    {/* Outer ring - static */}
+                    <circle
+                      cx="120"
+                      cy="120"
+                      r="95"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="2"
+                      opacity="0.5"
                     />
                     
                     {/* Main circle - draws in */}
                     <circle
-                      cx="100"
-                      cy="100"
-                      r="90"
+                      cx="120"
+                      cy="120"
+                      r="85"
                       fill="none"
                       stroke="#CCFF00"
-                      strokeWidth="3"
-                      strokeDasharray="565"
-                      strokeDashoffset="565"
+                      strokeWidth="3.5"
+                      strokeDasharray="535"
+                      strokeDashoffset="535"
                       strokeLinecap="round"
                       style={{
-                        animation: "drawCheckmark 1s ease-out forwards 0.2s",
+                        animation: "drawBolt 1.2s ease-out forwards 0.2s",
                       }}
                     />
                     
-                    {/* Checkmark - draws in */}
-                    <path
-                      d="M 60 100 L 85 125 L 140 70"
-                      fill="none"
-                      stroke="#CCFF00"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeDasharray="200"
-                      strokeDashoffset="200"
-                      style={{
-                        animation: "drawCheckmark 0.8s ease-out forwards 0.8s",
-                      }}
-                    />
+                    {/* Lightning bolt / Charge icon - animated */}
+                    <g style={{
+                      animation: "chargeFlash 1.5s ease-in-out forwards 1s",
+                      opacity: 0,
+                    }}>
+                      {/* Main bolt shape */}
+                      <path
+                        d="M 120 50 L 105 95 L 130 95 L 100 160 L 140 120 L 115 120 Z"
+                        fill="#CCFF00"
+                        style={{
+                          animation: "drawBolt 0.6s ease-out forwards 1.2s",
+                          strokeDasharray: "300",
+                          strokeDashoffset: "300",
+                          filter: "drop-shadow(0 0 8px #CCFF00)",
+                        }}
+                      />
+                      
+                      {/* Inner bolt glow */}
+                      <path
+                        d="M 120 50 L 105 95 L 130 95 L 100 160 L 140 120 L 115 120 Z"
+                        fill="none"
+                        stroke="#CCFF00"
+                        strokeWidth="1.5"
+                        opacity="0.6"
+                        style={{
+                          animation: "drawBolt 0.6s ease-out forwards 1.2s",
+                          strokeDasharray: "300",
+                          strokeDashoffset: "300",
+                        }}
+                      />
+                    </g>
                   </svg>
                 </div>
                 
                 {/* Text that fades in after animation */}
                 <div 
                   style={{
-                    animation: "slideUpText 0.6s ease-out forwards 1.8s",
+                    animation: "slideUpText 0.6s ease-out forwards 2s",
                     opacity: 0,
                   }}
                 >
-                  <h1 className="text-6xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.02em" }}>
-                    Payment Successful!
+                  <h1 className="text-7xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.03em", textShadow: "0 0 30px rgba(204, 255, 0, 0.3)" }}>
+                    Charged!
                   </h1>
-                  <p className="text-xl text-muted-foreground mt-4">Your booking has been confirmed</p>
-                  <p className="text-sm text-muted-foreground/70 mt-2">Redirecting to your bookings...</p>
+                  <p className="text-2xl text-muted-foreground mt-2" style={{ fontWeight: 300 }}>Your booking is confirmed</p>
+                  <p className="text-sm text-muted-foreground/60 mt-3">Redirecting to your bookings...</p>
                 </div>
               </div>
             </div>
