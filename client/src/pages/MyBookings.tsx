@@ -162,7 +162,8 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-12 max-w-5xl">
+      <Navigation />
+      <div className="container mx-auto px-6 py-20 max-w-5xl">
         <div className="space-y-8">
           <div className="space-y-4">
             <h1 className="text-6xl font-bold" data-testid="heading-my-bookings">
