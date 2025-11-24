@@ -696,64 +696,61 @@ export default function StationDetail() {
               <style>{`
                 @keyframes neonGlow {
                   0%, 100% {
-                    filter: drop-shadow(0 0 10px #CCFF00) drop-shadow(0 0 20px #CCFF0066);
+                    filter: drop-shadow(0 0 15px #CCFF00) drop-shadow(0 0 30px #CCFF0080);
                   }
                   50% {
-                    filter: drop-shadow(0 0 30px #CCFF00) drop-shadow(0 0 60px #CCFF0099);
+                    filter: drop-shadow(0 0 40px #CCFF00) drop-shadow(0 0 80px #CCFF00AA);
                   }
                 }
                 
-                @keyframes pulseCircles {
+                @keyframes pulseRing {
                   0% {
-                    r: 90;
-                    opacity: 0.3;
-                  }
-                  50% {
-                    r: 110;
-                    opacity: 0.1;
+                    r: 85;
+                    stroke-width: 3.5;
+                    opacity: 1;
                   }
                   100% {
-                    r: 130;
+                    r: 115;
+                    stroke-width: 1;
                     opacity: 0;
                   }
                 }
                 
-                @keyframes scaleInBounce {
+                @keyframes scaleInSmooth {
                   0% {
-                    transform: scale(0) rotate(-180deg);
+                    transform: scale(0.3);
                     opacity: 0;
                   }
-                  60% {
-                    transform: scale(1.2) rotate(0deg);
-                  }
                   100% {
-                    transform: scale(1) rotate(0deg);
+                    transform: scale(1);
                     opacity: 1;
                   }
                 }
                 
-                @keyframes chargeFlash {
+                @keyframes chargeFill {
+                  0% {
+                    opacity: 0;
+                    filter: drop-shadow(0 0 0px #CCFF00);
+                  }
+                  100% {
+                    opacity: 1;
+                    filter: drop-shadow(0 0 20px #CCFF00);
+                  }
+                }
+                
+                @keyframes chargeGlow {
                   0%, 100% {
-                    opacity: 1;
+                    filter: drop-shadow(0 0 15px #CCFF00);
                   }
                   50% {
-                    opacity: 0.6;
-                  }
-                }
-                
-                @keyframes drawBolt {
-                  0% {
-                    stroke-dashoffset: 300;
-                  }
-                  100% {
-                    stroke-dashoffset: 0;
+                    filter: drop-shadow(0 0 35px #CCFF00);
                   }
                 }
                 
                 @keyframes slideUpText {
                   0% {
                     opacity: 0;
-                    transform: translateY(30px);
+                    transform: translateY(20px);
                   }
                   100% {
                     opacity: 1;
@@ -762,103 +759,90 @@ export default function StationDetail() {
                 }
               `}</style>
               
-              <div className="text-center space-y-6">
-                {/* Animated neon charging icon with multiple circles */}
+              <div className="text-center space-y-8">
+                {/* Animated neon charging icon */}
                 <div 
                   style={{
-                    animation: "scaleInBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, neonGlow 2s ease-in-out 0.8s infinite",
+                    animation: "scaleInSmooth 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, neonGlow 3s ease-in-out 0.7s infinite",
                     display: "inline-block",
-                    position: "relative",
                   }}
                 >
-                  <svg width="240" height="240" viewBox="0 0 240 240" className="mx-auto">
-                    {/* Pulsing outer circles */}
+                  <svg width="260" height="260" viewBox="0 0 260 260" className="mx-auto">
+                    {/* Pulsing ring effect */}
                     <circle
-                      cx="120"
-                      cy="120"
-                      r="90"
-                      fill="none"
-                      stroke="#CCFF00"
-                      strokeWidth="1"
-                      style={{
-                        animation: "pulseCircles 2s ease-out infinite",
-                        opacity: 0.3,
-                      }}
-                    />
-                    
-                    {/* Outer ring - static */}
-                    <circle
-                      cx="120"
-                      cy="120"
-                      r="95"
-                      fill="none"
-                      stroke="#CCFF00"
-                      strokeWidth="2"
-                      opacity="0.5"
-                    />
-                    
-                    {/* Main circle - draws in */}
-                    <circle
-                      cx="120"
-                      cy="120"
+                      cx="130"
+                      cy="130"
                       r="85"
                       fill="none"
                       stroke="#CCFF00"
                       strokeWidth="3.5"
-                      strokeDasharray="535"
-                      strokeDashoffset="535"
-                      strokeLinecap="round"
                       style={{
-                        animation: "drawBolt 1.2s ease-out forwards 0.2s",
+                        animation: "pulseRing 1.8s ease-out infinite",
+                        opacity: 1,
                       }}
                     />
                     
-                    {/* Lightning bolt / Charge icon - animated */}
+                    {/* Static outer rings for structure */}
+                    <circle
+                      cx="130"
+                      cy="130"
+                      r="100"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="1.5"
+                      opacity="0.4"
+                    />
+                    
+                    <circle
+                      cx="130"
+                      cy="130"
+                      r="85"
+                      fill="none"
+                      stroke="#CCFF00"
+                      strokeWidth="2"
+                      opacity="0.6"
+                    />
+                    
+                    {/* Beautiful Lightning Bolt Icon */}
                     <g style={{
-                      animation: "chargeFlash 1.5s ease-in-out forwards 1s",
+                      animation: "chargeFill 0.8s ease-out forwards 0.6s, chargeGlow 2.5s ease-in-out 1.4s infinite",
                       opacity: 0,
                     }}>
-                      {/* Main bolt shape */}
+                      {/* Outer glow path */}
                       <path
-                        d="M 120 50 L 105 95 L 130 95 L 100 160 L 140 120 L 115 120 Z"
-                        fill="#CCFF00"
-                        style={{
-                          animation: "drawBolt 0.6s ease-out forwards 1.2s",
-                          strokeDasharray: "300",
-                          strokeDashoffset: "300",
-                          filter: "drop-shadow(0 0 8px #CCFF00)",
-                        }}
-                      />
-                      
-                      {/* Inner bolt glow */}
-                      <path
-                        d="M 120 50 L 105 95 L 130 95 L 100 160 L 140 120 L 115 120 Z"
+                        d="M 130 35 L 110 95 L 140 95 L 90 210 L 150 130 L 120 130 Z"
                         fill="none"
                         stroke="#CCFF00"
-                        strokeWidth="1.5"
-                        opacity="0.6"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.4"
+                      />
+                      
+                      {/* Main lightning bolt - thick and vibrant */}
+                      <path
+                        d="M 130 35 L 110 95 L 140 95 L 90 210 L 150 130 L 120 130 Z"
+                        fill="#CCFF00"
+                        opacity="1"
                         style={{
-                          animation: "drawBolt 0.6s ease-out forwards 1.2s",
-                          strokeDasharray: "300",
-                          strokeDashoffset: "300",
+                          filter: "drop-shadow(0 0 2px #CCFF00)",
                         }}
                       />
                     </g>
                   </svg>
                 </div>
                 
-                {/* Text that fades in after animation */}
+                {/* Success text - fades in smoothly */}
                 <div 
                   style={{
-                    animation: "slideUpText 0.6s ease-out forwards 2s",
+                    animation: "slideUpText 0.8s ease-out forwards 1.8s",
                     opacity: 0,
                   }}
                 >
-                  <h1 className="text-7xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.03em", textShadow: "0 0 30px rgba(204, 255, 0, 0.3)" }}>
-                    Charged!
+                  <h1 className="text-8xl font-black" style={{ color: "#CCFF00", letterSpacing: "-0.02em", lineHeight: 1, textShadow: "0 0 40px rgba(204, 255, 0, 0.4)" }}>
+                    Payment Successful!
                   </h1>
-                  <p className="text-2xl text-muted-foreground mt-2" style={{ fontWeight: 300 }}>Your booking is confirmed</p>
-                  <p className="text-sm text-muted-foreground/60 mt-3">Redirecting to your bookings...</p>
+                  <p className="text-xl text-muted-foreground mt-6" style={{ fontWeight: 300, letterSpacing: "0.05em" }}>Your booking is confirmed</p>
                 </div>
               </div>
             </div>
