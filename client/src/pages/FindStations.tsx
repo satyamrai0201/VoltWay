@@ -46,7 +46,7 @@ export default function FindStations() {
 
   // Fetch city suggestions from Nominatim API
   useEffect(() => {
-    if (searchCity.length < 2) {
+    if (searchCity.length < 1) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -54,15 +54,19 @@ export default function FindStations() {
 
     const fetchSuggestions = async () => {
       try {
+        // Search for Indian cities using Nominatim
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(searchCity)}&country=india&format=json&limit=5`
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchCity)}&countrycodes=in&featuretype=city&format=json&limit=10`
         );
         const data = await response.json();
         
         // Extract unique city names
         const uniqueCities = new Map<string, CityTip>();
         data.forEach((item: any) => {
-          const cityName = item.address?.city || item.name;
+          // Try to get city name from address or use the main name
+          const parts = item.address?.city || item.name;
+          const cityName = parts ? parts.split(',')[0].trim() : null;
+          
           if (cityName && !uniqueCities.has(cityName.toLowerCase())) {
             uniqueCities.set(cityName.toLowerCase(), {
               name: cityName,
@@ -72,7 +76,26 @@ export default function FindStations() {
           }
         });
         
-        setSuggestions(Array.from(uniqueCities.values()).slice(0, 5));
+        // If no results, try broader search
+        if (uniqueCities.size === 0) {
+          const broadResponse = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchCity)}&countrycodes=in&format=json&limit=10`
+          );
+          const broadData = await broadResponse.json();
+          
+          broadData.forEach((item: any) => {
+            const cityName = item.address?.city || item.address?.town || item.name;
+            if (cityName && !uniqueCities.has(cityName.toLowerCase())) {
+              uniqueCities.set(cityName.toLowerCase(), {
+                name: cityName,
+                lat: item.lat,
+                lon: item.lon,
+              });
+            }
+          });
+        }
+        
+        setSuggestions(Array.from(uniqueCities.values()).slice(0, 8));
         setShowSuggestions(true);
       } catch (error) {
         console.error("Error fetching suggestions:", error);
