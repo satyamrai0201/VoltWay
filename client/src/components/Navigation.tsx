@@ -52,16 +52,24 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden hover-elevate rounded-full p-2"
+              data-testid="button-mobile-menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+
             {isLoggedIn ? (
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="hover-elevate rounded-full"
+                  className="hover-elevate rounded-full p-1"
                   data-testid="button-profile"
                 >
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage src="" />
-                    <AvatarFallback className="bg-primary text-primary-foreground">U</AvatarFallback>
+                    <AvatarFallback className="bg-lime-400 text-black text-xs font-bold">J</AvatarFallback>
                   </Avatar>
                 </button>
                 <AnimatePresence>
@@ -82,21 +90,13 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
                 </Button>
                 <Button
                   onClick={onLoginClick}
-                  className="rounded-full bg-primary hover:bg-primary/90"
+                  className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
                   data-testid="button-get-started"
                 >
                   Get Started
                 </Button>
               </>
             )}
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden hover-elevate rounded-full p-2"
-              data-testid="button-mobile-menu"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
           </div>
         </div>
 

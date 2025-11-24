@@ -22,14 +22,6 @@ export default function Footer() {
       title: "Account",
       links: [
         { id: "profile", label: "Profile", href: "/profile" },
-        { id: "my-account", label: "My Account", href: "/profile" },
-      ],
-    },
-    {
-      title: "Support",
-      links: [
-        { id: "help", label: "Help", href: "/" },
-        { id: "contact", label: "Contact Us", href: "/" },
       ],
     },
   ];
