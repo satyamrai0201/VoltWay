@@ -34,7 +34,7 @@ export default function StationDetail() {
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState<3 | 6 | 9 | 12 | "custom" | null>(null);
   const [endTime, setEndTime] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
@@ -43,6 +43,13 @@ export default function StationDetail() {
   const [cardCvc, setCardCvc] = useState("");
   const [pendingBookingData, setPendingBookingData] = useState<any>(null);
   const [totalPrice, setTotalPrice] = useState("0");
+
+  const packages = [
+    { hours: 3, label: "3 Hours" },
+    { hours: 6, label: "6 Hours" },
+    { hours: 9, label: "9 Hours" },
+    { hours: 12, label: "12 Hours" },
+  ];
 
   const { data: station, isLoading: stationLoading } = useQuery<Station>({
     queryKey: ["/api/stations", stationId],
@@ -84,7 +91,7 @@ export default function StationDetail() {
   const resetForm = () => {
     setStartDate("");
     setStartTime("");
-    setEndDate("");
+    setSelectedPackage(null);
     setEndTime("");
     setVehicleModel("");
     setSpecialRequests("");
@@ -107,11 +114,17 @@ export default function StationDetail() {
     return format(threeDoysLater, "yyyy-MM-dd");
   };
 
+  const calculateEndTime = (start: Date, hours: number) => {
+    const end = new Date(start);
+    end.setHours(end.getHours() + hours);
+    return end;
+  };
+
   const validateBooking = () => {
-    if (!startDate || !startTime || !endDate || !endTime) {
+    if (!startDate || !startTime || selectedPackage === null) {
       toast({
         title: "Missing information",
-        description: "Please fill in all booking details.",
+        description: "Please select date, time, and package.",
         variant: "destructive",
       });
       return null;
@@ -121,7 +134,6 @@ export default function StationDetail() {
     today.setHours(0, 0, 0, 0);
     
     const start = new Date(`${startDate}T${startTime}`);
-    const end = new Date(`${endDate}T${endTime}`);
     const maxDate = addDays(new Date(), 3);
     maxDate.setHours(23, 59, 59, 999);
 
@@ -145,39 +157,44 @@ export default function StationDetail() {
       return null;
     }
 
-    // Check if end date is before start date
-    if (endDate < startDate) {
-      toast({
-        title: "Invalid date range",
-        description: "End date must be on or after start date.",
-        variant: "destructive",
-      });
-      return null;
+    // Get hours from package
+    let hours = 0;
+    if (selectedPackage === "custom") {
+      if (!endTime) {
+        toast({
+          title: "Missing end time",
+          description: "Please specify end time for custom booking.",
+          variant: "destructive",
+        });
+        return null;
+      }
+      const end = new Date(`${startDate}T${endTime}`);
+      if (end <= start) {
+        toast({
+          title: "Invalid time range",
+          description: "End time must be after start time.",
+          variant: "destructive",
+        });
+        return null;
+      }
+      hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    } else {
+      hours = selectedPackage;
     }
 
-    // Check if end time is after start time
-    if (endDate === startDate && endTime <= startTime) {
-      toast({
-        title: "Invalid time range",
-        description: "End time must be after start time on the same day.",
-        variant: "destructive",
-      });
-      return null;
-    }
+    const end = calculateEndTime(start, hours);
 
     // Check if end date is beyond 3 days
     if (end > maxDate) {
       toast({
-        title: "Date too far",
-        description: "Booking end date must be within 3 days.",
+        title: "Booking too long",
+        description: "Booking cannot extend beyond 3 days from now.",
         variant: "destructive",
       });
       return null;
     }
 
-    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     const price = (hours * parseFloat(station?.pricePerHour || "0")).toFixed(2);
-
     return { start, end, hours, price };
   };
 
@@ -329,13 +346,13 @@ export default function StationDetail() {
                 <DialogHeader>
                   <DialogTitle>Book Charging Session</DialogTitle>
                   <DialogDescription>
-                    Schedule your charging session at {station.name}
+                    Select a package and time for {station.name}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                     <p className="text-sm text-blue-900 dark:text-blue-100">
-                      📅 You can book up to <strong>3 days</strong> in advance
+                      📅 Book up to <strong>3 days</strong> in advance
                     </p>
                   </div>
 
@@ -363,30 +380,59 @@ export default function StationDetail() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="end-date">End Date</Label>
-                      <Input
-                        id="end-date"
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        min={startDate || getMinDate()}
-                        max={getMaxDate()}
-                        data-testid="input-end-date"
-                      />
+
+                  <div className="space-y-2">
+                    <Label>Select Package</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {packages.map((pkg) => (
+                        <Button
+                          key={pkg.hours}
+                          variant={selectedPackage === pkg.hours ? "default" : "outline"}
+                          onClick={() => setSelectedPackage(pkg.hours as any)}
+                          className="text-center"
+                          data-testid={`button-package-${pkg.hours}`}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{pkg.label}</span>
+                            <span className="text-xs">
+                              ₹{((pkg.hours * parseFloat(station?.pricePerHour || "0"))).toFixed(0)}
+                            </span>
+                          </div>
+                        </Button>
+                      ))}
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="end-time">End Time</Label>
+                  </div>
+
+                  <Button
+                    variant={selectedPackage === "custom" ? "default" : "outline"}
+                    onClick={() => setSelectedPackage("custom")}
+                    className="w-full"
+                    data-testid="button-custom-package"
+                  >
+                    Custom Duration
+                  </Button>
+
+                  {selectedPackage === "custom" && (
+                    <div className="space-y-2 border-t pt-4">
+                      <Label htmlFor="custom-end-time">End Time</Label>
                       <Input
-                        id="end-time"
+                        id="custom-end-time"
                         type="time"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        data-testid="input-end-time"
+                        data-testid="input-custom-end-time"
                       />
                     </div>
-                  </div>
+                  )}
+
+                  {selectedPackage && selectedPackage !== "custom" && (
+                    <div className="bg-muted rounded-lg p-3">
+                      <p className="text-sm text-muted-foreground">
+                        Duration: <strong>{selectedPackage} hours</strong>
+                      </p>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="vehicle">Vehicle Model (Optional)</Label>
                     <Input
@@ -409,6 +455,7 @@ export default function StationDetail() {
                   </div>
                   <Button
                     onClick={handleProceedToPayment}
+                    disabled={!selectedPackage}
                     className="w-full"
                     data-testid="button-proceed-payment"
                   >
