@@ -9,6 +9,7 @@ export default {
         lg: ".5625rem", /* 9px */
         md: ".375rem", /* 6px */
         sm: ".1875rem", /* 3px */
+        "3xl": "1.75rem", /* 28px - VoltWay large containers */
       },
       colors: {
         // Flat / base colors (regular buttons)
