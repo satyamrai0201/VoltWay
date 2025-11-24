@@ -34,10 +34,10 @@ export default function Footer() {
   ];
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    { icon: Facebook, href: "https://www.facebook.com", label: "Facebook" },
+    { icon: Twitter, href: "https://www.twitter.com", label: "Twitter" },
+    { icon: Instagram, href: "https://www.instagram.com", label: "Instagram" },
+    { icon: Linkedin, href: "https://www.linkedin.com", label: "LinkedIn" },
   ];
 
   return (
@@ -79,6 +79,8 @@ export default function Footer() {
               <a
                 key={social.label}
                 href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="h-10 w-10 rounded-full bg-muted-foreground/10 hover-elevate flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={social.label}
                 data-testid={`link-social-${social.label.toLowerCase()}`}
