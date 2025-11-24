@@ -11,8 +11,24 @@ import HostDashboard from "@/pages/HostDashboard";
 import BecomeHost from "@/pages/BecomeHost";
 import Profile from "@/pages/Profile";
 import NotFound from "@/pages/not-found";
+import { useAuth } from "@/hooks/useAuth";
+import { LoginPrompt } from "@/components/LoginPrompt";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPrompt />;
+  }
+
   return (
     <Switch>
       <Route path="/" component={Home} />

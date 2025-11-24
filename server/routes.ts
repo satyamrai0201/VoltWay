@@ -1,10 +1,72 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertStationSchema, insertBookingSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
+import session from "express-session";
+import MemoryStore from "memorystore";
+
+const MemStore = MemoryStore(session) as any;
+
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+    }
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Session middleware for auth
+  app.use(
+    session({
+      store: new MemStore(),
+      secret: process.env.SESSION_SECRET || "dev-secret-key",
+      resave: false,
+      saveUninitialized: false,
+      cookie: { secure: false, httpOnly: true },
+    })
+  );
+
+  // Auth endpoints
+  app.get("/api/auth/user", async (req: Request & { user?: any }, res) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const user = await storage.getUser(req.user.id);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  // Mock login endpoint for demo purposes
+  app.get("/api/login", async (req: Request & { user?: any }, res) => {
+    try {
+      // For demo, log in as the first sample user
+      req.user = { id: "sample-user-1" };
+      res.json({ message: "Logged in successfully", user: { id: "sample-user-1" } });
+    } catch (error) {
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Mock logout endpoint
+  app.get("/api/logout", (req: any, res) => {
+    if (req.logout) {
+      req.logout((err: any) => {
+        if (err) return res.status(500).json({ error: "Logout failed" });
+        res.json({ message: "Logged out successfully" });
+      });
+    } else {
+      res.json({ message: "Logged out successfully" });
+    }
+  });
+
   app.get("/api/stations", async (req, res) => {
     try {
       const { city, chargerType, minPower } = req.query;
