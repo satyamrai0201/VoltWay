@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute } from "wouter";
-import { format } from "date-fns";
-import { MapPin, Zap, Clock, Star, Calendar, ArrowLeft, Check } from "lucide-react";
+import { format, addDays } from "date-fns";
+import { MapPin, Zap, Clock, Star, Calendar, ArrowLeft, Check, CreditCard, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +31,18 @@ export default function StationDetail() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+  const [pendingBookingData, setPendingBookingData] = useState<any>(null);
+  const [totalPrice, setTotalPrice] = useState("0");
 
   const { data: station, isLoading: stationLoading } = useQuery<Station>({
     queryKey: ["/api/stations", stationId],
@@ -63,6 +69,8 @@ export default function StationDetail() {
         description: "Your charging session has been booked successfully.",
       });
       setIsBookingOpen(false);
+      setIsPaymentOpen(false);
+      resetForm();
     },
     onError: () => {
       toast({
@@ -73,49 +81,175 @@ export default function StationDetail() {
     },
   });
 
-  const handleBooking = () => {
-    if (!user) {
-      toast({
-        title: "Please log in",
-        description: "You must be logged in to book a station.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const resetForm = () => {
+    setStartDate("");
+    setStartTime("");
+    setEndDate("");
+    setEndTime("");
+    setVehicleModel("");
+    setSpecialRequests("");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCvc("");
+    setPendingBookingData(null);
+    setTotalPrice("0");
+  };
 
+  const getMinDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return format(today, "yyyy-MM-dd");
+  };
+
+  const getMaxDate = () => {
+    const threeDoysLater = addDays(new Date(), 3);
+    threeDoysLater.setHours(23, 59, 59, 999);
+    return format(threeDoysLater, "yyyy-MM-dd");
+  };
+
+  const validateBooking = () => {
     if (!startDate || !startTime || !endDate || !endTime) {
       toast({
         title: "Missing information",
         description: "Please fill in all booking details.",
         variant: "destructive",
       });
-      return;
+      return null;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
-    
-    if (end <= start) {
+    const maxDate = addDays(new Date(), 3);
+    maxDate.setHours(23, 59, 59, 999);
+
+    // Check if start date is in the past
+    if (start < today) {
+      toast({
+        title: "Invalid start date",
+        description: "You cannot book in the past.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Check if start date is beyond 3 days
+    if (start > maxDate) {
+      toast({
+        title: "Date too far",
+        description: "You can only book up to 3 days in advance.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Check if end date is before start date
+    if (endDate < startDate) {
+      toast({
+        title: "Invalid date range",
+        description: "End date must be on or after start date.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Check if end time is after start time
+    if (endDate === startDate && endTime <= startTime) {
       toast({
         title: "Invalid time range",
-        description: "End time must be after start time.",
+        description: "End time must be after start time on the same day.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    // Check if end date is beyond 3 days
+    if (end > maxDate) {
+      toast({
+        title: "Date too far",
+        description: "Booking end date must be within 3 days.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const price = (hours * parseFloat(station?.pricePerHour || "0")).toFixed(2);
+
+    return { start, end, hours, price };
+  };
+
+  const handleProceedToPayment = () => {
+    const validation = validateBooking();
+    if (!validation) return;
+
+    const { start, end, hours, price } = validation;
+
+    setPendingBookingData({
+      userId: user?.id,
+      stationId,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      totalPrice: price,
+      vehicleModel: vehicleModel || "Not specified",
+      specialRequests: specialRequests || "None",
+    });
+    setTotalPrice(price);
+    setIsPaymentOpen(true);
+  };
+
+  const handlePayment = () => {
+    if (!cardNumber || !cardExpiry || !cardCvc) {
+      toast({
+        title: "Missing payment info",
+        description: "Please fill in all card details.",
         variant: "destructive",
       });
       return;
     }
 
-    const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    const totalPrice = (hours * parseFloat(station?.pricePerHour || "0")).toFixed(2);
+    // Validate card number (simple check)
+    if (cardNumber.replace(/\s/g, "").length !== 16) {
+      toast({
+        title: "Invalid card number",
+        description: "Card number must be 16 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    createBooking.mutate({
-      userId: user.id,
-      stationId,
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-      totalPrice,
-      vehicleModel,
-      specialRequests,
-    } as any);
+    // Validate expiry format
+    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+      toast({
+        title: "Invalid expiry",
+        description: "Please use MM/YY format.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate CVC
+    if (cardCvc.length !== 3) {
+      toast({
+        title: "Invalid CVC",
+        description: "CVC must be 3 digits.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Process payment (demo)
+    toast({
+      title: "Processing payment...",
+      description: "Please wait while we process your payment.",
+    });
+
+    // Simulate payment processing
+    setTimeout(() => {
+      createBooking.mutate(pendingBookingData);
+    }, 1500);
   };
 
   if (stationLoading) {
@@ -199,6 +333,12 @@ export default function StationDetail() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
+                  <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                      📅 You can book up to <strong>3 days</strong> in advance
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="start-date">Start Date</Label>
@@ -207,6 +347,8 @@ export default function StationDetail() {
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
+                        min={getMinDate()}
+                        max={getMaxDate()}
                         data-testid="input-start-date"
                       />
                     </div>
@@ -229,6 +371,8 @@ export default function StationDetail() {
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
+                        min={startDate || getMinDate()}
+                        max={getMaxDate()}
                         data-testid="input-end-date"
                       />
                     </div>
@@ -264,17 +408,116 @@ export default function StationDetail() {
                     />
                   </div>
                   <Button
-                    onClick={handleBooking}
-                    disabled={createBooking.isPending}
+                    onClick={handleProceedToPayment}
                     className="w-full"
-                    data-testid="button-confirm-booking"
+                    data-testid="button-proceed-payment"
                   >
-                    {createBooking.isPending ? "Booking..." : "Confirm Booking"}
+                    Proceed to Payment
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Payment Dialog */}
+          <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CreditCard size={20} />
+                  Payment Demo
+                </DialogTitle>
+                <DialogDescription>
+                  Complete your booking for {station.name}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Order Summary */}
+                <div className="bg-muted rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Amount due:</span>
+                    <span className="font-semibold text-lg text-primary">₹{totalPrice}</span>
+                  </div>
+                </div>
+
+                {/* Card Details */}
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="card-number">Card Number</Label>
+                    <Input
+                      id="card-number"
+                      placeholder="1234 5678 9012 3456"
+                      value={cardNumber}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\s/g, "");
+                        val = val.replace(/(.{4})/g, "$1 ").trim();
+                        setCardNumber(val);
+                      }}
+                      maxLength={19}
+                      data-testid="input-card-number"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="expiry">Expiry (MM/YY)</Label>
+                      <Input
+                        id="expiry"
+                        placeholder="12/25"
+                        value={cardExpiry}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, "");
+                          if (val.length >= 2) {
+                            val = val.slice(0, 2) + "/" + val.slice(2, 4);
+                          }
+                          setCardExpiry(val);
+                        }}
+                        maxLength={5}
+                        data-testid="input-card-expiry"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cvc">CVC</Label>
+                      <Input
+                        id="cvc"
+                        placeholder="123"
+                        value={cardCvc}
+                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ""))}
+                        maxLength={3}
+                        data-testid="input-card-cvc"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security Badge */}
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Lock size={16} />
+                  <span>Secure payment</span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPaymentOpen(false)}
+                    className="flex-1"
+                    data-testid="button-cancel-payment"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handlePayment}
+                    disabled={createBooking.isPending}
+                    className="flex-1"
+                    data-testid="button-pay-now"
+                  >
+                    {createBooking.isPending ? "Processing..." : "Pay Now"}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <Card>
             <CardHeader>
