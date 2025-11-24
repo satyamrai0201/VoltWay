@@ -1,16 +1,15 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import StationCard from "@/components/StationCard";
-import LoginModal from "@/components/LoginModal";
 import StationDetailModal from "@/components/StationDetailModal";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 
 export default function Home() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [, setLocation] = useLocation();
   const [selectedStation, setSelectedStation] = useState<any>(null);
 
   const mockStations = [
@@ -55,27 +54,13 @@ export default function Home() {
     },
   ];
 
-  const handleLogin = (email: string, password: string) => {
-    console.log("Login:", { email, password });
-    setIsLoggedIn(true);
-    setIsLoginOpen(false);
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      <Navigation
-        isLoggedIn={isLoggedIn}
-        onLoginClick={() => setIsLoginOpen(true)}
-        onLogout={handleLogout}
-      />
+      <Navigation />
 
       <HeroSection
         onHowItWorksClick={() => console.log("How it works clicked")}
-        onGetStartedClick={() => setIsLoginOpen(true)}
+        onGetStartedClick={() => setLocation("/find-stations")}
       />
 
       <FeaturesSection />
@@ -101,11 +86,8 @@ export default function Home() {
                 key={index}
                 {...station}
                 onBookClick={() => {
-                  if (!isLoggedIn) {
-                    setIsLoginOpen(true);
-                  } else {
-                    console.log("Book station:", station.name);
-                  }
+                  console.log("Book station:", station.name);
+                  setLocation("/find-stations");
                 }}
                 onViewDetails={() => setSelectedStation(station)}
               />
@@ -116,33 +98,18 @@ export default function Home() {
 
       <Footer />
 
-      <LoginModal
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLogin={handleLogin}
-        onSignUpClick={() => console.log("Sign up clicked")}
-      />
-
       {selectedStation && (
         <StationDetailModal
           isOpen={!!selectedStation}
           onClose={() => setSelectedStation(null)}
           station={selectedStation}
           onBookNow={() => {
-            if (!isLoggedIn) {
-              setSelectedStation(null);
-              setIsLoginOpen(true);
-            } else {
-              console.log("Book now:", selectedStation.name);
-            }
+            setSelectedStation(null);
+            setLocation("/find-stations");
           }}
           onSchedule={() => {
-            if (!isLoggedIn) {
-              setSelectedStation(null);
-              setIsLoginOpen(true);
-            } else {
-              console.log("Schedule:", selectedStation.name);
-            }
+            setSelectedStation(null);
+            setLocation("/find-stations");
           }}
         />
       )}

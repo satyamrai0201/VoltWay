@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, X } from "lucide-react";
 import ProfileDropdown from "./ProfileDropdown";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavigationProps {
   isLoggedIn?: boolean;
@@ -12,7 +13,9 @@ interface NavigationProps {
   onLogout?: () => void;
 }
 
-export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout }: NavigationProps) {
+export default function Navigation({ isLoggedIn: propIsLoggedIn, onLoginClick, onLogout }: NavigationProps) {
+  const { isAuthenticated } = useAuth();
+  const isLoggedIn = propIsLoggedIn !== undefined ? propIsLoggedIn : isAuthenticated;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -82,14 +85,14 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
               <>
                 <Button
                   variant="ghost"
-                  onClick={onLoginClick}
+                  onClick={() => window.location.href = "/api/login"}
                   className="hidden md:inline-flex rounded-full"
                   data-testid="button-login"
                 >
                   Login
                 </Button>
                 <Button
-                  onClick={onLoginClick}
+                  onClick={() => window.location.href = "/api/login"}
                   className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
                   data-testid="button-get-started"
                 >
