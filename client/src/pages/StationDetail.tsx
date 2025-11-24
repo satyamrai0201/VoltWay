@@ -113,7 +113,7 @@ export default function StationDetail() {
       setTimeout(() => {
         resetForm();
         setIsPaymentSuccess(false);
-        navigate("/my-bookings");
+        navigate("/bookings");
       }, 3000);
     },
     onError: () => {
