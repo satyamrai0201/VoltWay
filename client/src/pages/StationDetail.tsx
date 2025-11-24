@@ -85,15 +85,22 @@ export default function StationDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
       setIsProcessing(false);
-      setIsPaymentOpen(false);
-      setIsPaymentSuccess(true);
       
-      // Auto-redirect to bookings after tick animation completes
+      // Close dialog first
+      setIsPaymentOpen(false);
+      
+      // Then show animation after dialog closes
       setTimeout(() => {
-        resetForm();
-        setIsPaymentSuccess(false);
-        navigate("/bookings");
-      }, 3500);
+        setIsPaymentSuccess(true);
+        
+        // Auto-redirect to bookings after tick animation completes
+        setTimeout(() => {
+          resetForm();
+          setIsPaymentSuccess(false);
+          setIsBookingOpen(false);
+          navigate("/bookings");
+        }, 3000);
+      }, 300);
     },
     onError: () => {
       setIsProcessing(false);
