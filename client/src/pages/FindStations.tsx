@@ -138,30 +138,12 @@ export default function FindStations() {
     return true;
   });
 
-  // Determine map center based on search - only if we have valid coordinates
-  const getMapCenter = (): [number, number] | null => {
-    if (searchCity) {
-      const cityCoord = cityCoordinates[searchCity.toLowerCase()];
-      if (cityCoord) return cityCoord;
-    }
-    
-    if (filteredStations.length > 0) {
-      const lat = parseFloat(filteredStations[0].latitude);
-      const lon = parseFloat(filteredStations[0].longitude);
-      if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
-        return [lat, lon];
-      }
-    }
-    
-    // Return default only if we have no filters applied
-    if (!searchCity && !showHomeStationsOnly) {
-      return [28.4595, 77.0266];
-    }
-    
-    return null;
-  };
-  
-  const mapCenter = getMapCenter();
+  // Determine map center based on search
+  const mapCenter: [number, number] = searchCity 
+    ? cityCoordinates[searchCity.toLowerCase()] || [28.4595, 77.0266]
+    : filteredStations.length > 0 
+      ? [parseFloat(filteredStations[0].latitude), parseFloat(filteredStations[0].longitude)]
+      : [28.4595, 77.0266]; // Default to Gurgaon
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -369,7 +351,7 @@ export default function FindStations() {
         </div>
 
         <div className="flex-1">
-          {filteredStations.length > 0 && mapCenter ? (
+          {filteredStations.length > 0 ? (
             <MapContainer center={mapCenter} zoom={searchCity ? 12 : 11} className="h-full w-full">
               <TileLayer 
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
