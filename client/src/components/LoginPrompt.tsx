@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
+import energyVideoUrl from "@assets/generated_videos/ev_charging_power_energy_vortex.mp4";
 
 export default function LoginPrompt() {
   const handleLogin = () => {
@@ -7,8 +8,18 @@ export default function LoginPrompt() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20 flex items-center justify-center p-4">
-      <div className="text-center max-w-2xl">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src={energyVideoUrl} type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-gradient-to-br from-background/60 via-background/70 to-accent/30" />
+      <div className="text-center max-w-2xl relative z-10">
         <div className="mb-8 flex justify-center">
           <div className="relative">
             <div className="absolute inset-0 bg-lime-400 opacity-20 blur-2xl rounded-full"></div>

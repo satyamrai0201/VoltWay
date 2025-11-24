@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Play, Zap } from "lucide-react";
+import stationVideoUrl from "@assets/generated_videos/ev_charging_station_neon_night_scene.mp4";
 
 interface HeroSectionProps {
   onHowItWorksClick?: () => void;
@@ -17,7 +18,16 @@ export default function HeroSection({ onHowItWorksClick, onGetStartedClick }: He
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-12 px-6" data-testid="section-hero">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/30 to-background" />
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src={stationVideoUrl} type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/70 to-background" />
       
       <div className="relative max-w-7xl mx-auto w-full">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
