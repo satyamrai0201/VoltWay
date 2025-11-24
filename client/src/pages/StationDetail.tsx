@@ -38,9 +38,12 @@ export default function StationDetail() {
   const [endTime, setEndTime] = useState("");
   const [vehicleModel, setVehicleModel] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "upi" | "netbanking" | "wallet">("card");
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvc, setCardCvc] = useState("");
+  const [upiId, setUpiId] = useState("");
+  const [bankName, setBankName] = useState("");
   const [pendingBookingData, setPendingBookingData] = useState<any>(null);
   const [totalPrice, setTotalPrice] = useState("0");
 
@@ -50,6 +53,13 @@ export default function StationDetail() {
     { hours: 9, label: "9 Hours" },
     { hours: 12, label: "12 Hours" },
   ];
+
+  const paymentMethods = [
+    { id: "card", label: "Credit/Debit Card", icon: "💳" },
+    { id: "upi", label: "UPI", icon: "📱" },
+    { id: "netbanking", label: "Net Banking", icon: "🏦" },
+    { id: "wallet", label: "Digital Wallet", icon: "👛" },
+  ] as const;
 
   const { data: station, isLoading: stationLoading } = useQuery<Station>({
     queryKey: ["/api/stations", stationId],
@@ -95,9 +105,12 @@ export default function StationDetail() {
     setEndTime("");
     setVehicleModel("");
     setSpecialRequests("");
+    setPaymentMethod("card");
     setCardNumber("");
     setCardExpiry("");
     setCardCvc("");
+    setUpiId("");
+    setBankName("");
     setPendingBookingData(null);
     setTotalPrice("0");
   };
@@ -218,52 +231,73 @@ export default function StationDetail() {
   };
 
   const handlePayment = () => {
-    if (!cardNumber || !cardExpiry || !cardCvc) {
-      toast({
-        title: "Missing payment info",
-        description: "Please fill in all card details.",
-        variant: "destructive",
-      });
-      return;
+    if (paymentMethod === "card") {
+      if (!cardNumber || !cardExpiry || !cardCvc) {
+        toast({
+          title: "Missing payment info",
+          description: "Please fill in all card details.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (cardNumber.replace(/\s/g, "").length !== 16) {
+        toast({
+          title: "Invalid card number",
+          description: "Card number must be 16 digits.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
+        toast({
+          title: "Invalid expiry",
+          description: "Please use MM/YY format.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (cardCvc.length !== 3) {
+        toast({
+          title: "Invalid CVC",
+          description: "CVC must be 3 digits.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (paymentMethod === "upi") {
+      if (!upiId.trim()) {
+        toast({
+          title: "UPI ID required",
+          description: "Please enter your UPI ID.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!upiId.includes("@")) {
+        toast({
+          title: "Invalid UPI ID",
+          description: "Please enter a valid UPI ID (e.g., user@upi).",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (paymentMethod === "netbanking") {
+      if (!bankName.trim()) {
+        toast({
+          title: "Bank not selected",
+          description: "Please select your bank.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
-    // Validate card number (simple check)
-    if (cardNumber.replace(/\s/g, "").length !== 16) {
-      toast({
-        title: "Invalid card number",
-        description: "Card number must be 16 digits.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate expiry format
-    if (!/^\d{2}\/\d{2}$/.test(cardExpiry)) {
-      toast({
-        title: "Invalid expiry",
-        description: "Please use MM/YY format.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate CVC
-    if (cardCvc.length !== 3) {
-      toast({
-        title: "Invalid CVC",
-        description: "CVC must be 3 digits.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Process payment (demo)
+    const methodLabel = paymentMethods.find(m => m.id === paymentMethod)?.label || "Payment";
     toast({
       title: "Processing payment...",
-      description: "Please wait while we process your payment.",
+      description: `Please wait while we process your ${methodLabel}.`,
     });
 
-    // Simulate payment processing
     setTimeout(() => {
       createBooking.mutate(pendingBookingData);
     }, 1500);
@@ -472,7 +506,7 @@ export default function StationDetail() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <CreditCard size={20} />
-                  Payment Demo
+                  Select Payment Method
                 </DialogTitle>
                 <DialogDescription>
                   Complete your booking for {station.name}
@@ -487,54 +521,121 @@ export default function StationDetail() {
                   </div>
                 </div>
 
-                {/* Card Details */}
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="card-number">Card Number</Label>
-                    <Input
-                      id="card-number"
-                      placeholder="1234 5678 9012 3456"
-                      value={cardNumber}
-                      onChange={(e) => {
-                        let val = e.target.value.replace(/\s/g, "");
-                        val = val.replace(/(.{4})/g, "$1 ").trim();
-                        setCardNumber(val);
-                      }}
-                      maxLength={19}
-                      data-testid="input-card-number"
-                    />
+                {/* Payment Method Selection */}
+                <div className="space-y-2">
+                  <Label>Payment Method</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {paymentMethods.map((method) => (
+                      <Button
+                        key={method.id}
+                        variant={paymentMethod === method.id ? "default" : "outline"}
+                        onClick={() => setPaymentMethod(method.id)}
+                        className="flex flex-col items-center gap-1 py-3 h-auto"
+                        data-testid={`button-payment-${method.id}`}
+                      >
+                        <span className="text-lg">{method.icon}</span>
+                        <span className="text-xs text-center">{method.label}</span>
+                      </Button>
+                    ))}
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                {/* Payment Details */}
+                <div className="space-y-3 border-t pt-4">
+                  {paymentMethod === "card" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="card-number">Card Number</Label>
+                        <Input
+                          id="card-number"
+                          placeholder="1234 5678 9012 3456"
+                          value={cardNumber}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\s/g, "");
+                            val = val.replace(/(.{4})/g, "$1 ").trim();
+                            setCardNumber(val);
+                          }}
+                          maxLength={19}
+                          data-testid="input-card-number"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="expiry">Expiry (MM/YY)</Label>
+                          <Input
+                            id="expiry"
+                            placeholder="12/25"
+                            value={cardExpiry}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, "");
+                              if (val.length >= 2) {
+                                val = val.slice(0, 2) + "/" + val.slice(2, 4);
+                              }
+                              setCardExpiry(val);
+                            }}
+                            maxLength={5}
+                            data-testid="input-card-expiry"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvc">CVC</Label>
+                          <Input
+                            id="cvc"
+                            placeholder="123"
+                            value={cardCvc}
+                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ""))}
+                            maxLength={3}
+                            data-testid="input-card-cvc"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {paymentMethod === "upi" && (
                     <div className="space-y-2">
-                      <Label htmlFor="expiry">Expiry (MM/YY)</Label>
+                      <Label htmlFor="upi-id">UPI ID</Label>
                       <Input
-                        id="expiry"
-                        placeholder="12/25"
-                        value={cardExpiry}
-                        onChange={(e) => {
-                          let val = e.target.value.replace(/\D/g, "");
-                          if (val.length >= 2) {
-                            val = val.slice(0, 2) + "/" + val.slice(2, 4);
-                          }
-                          setCardExpiry(val);
-                        }}
-                        maxLength={5}
-                        data-testid="input-card-expiry"
+                        id="upi-id"
+                        placeholder="yourname@upi"
+                        value={upiId}
+                        onChange={(e) => setUpiId(e.target.value)}
+                        data-testid="input-upi-id"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Format: yourname@bankname (e.g., user@paytm, user@googlepay)
+                      </p>
                     </div>
+                  )}
+
+                  {paymentMethod === "netbanking" && (
                     <div className="space-y-2">
-                      <Label htmlFor="cvc">CVC</Label>
-                      <Input
-                        id="cvc"
-                        placeholder="123"
-                        value={cardCvc}
-                        onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ""))}
-                        maxLength={3}
-                        data-testid="input-card-cvc"
-                      />
+                      <Label htmlFor="bank-select">Select Your Bank</Label>
+                      <select
+                        id="bank-select"
+                        value={bankName}
+                        onChange={(e) => setBankName(e.target.value)}
+                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+                        data-testid="select-bank"
+                      >
+                        <option value="">-- Choose a bank --</option>
+                        <option value="HDFC">HDFC Bank</option>
+                        <option value="ICICI">ICICI Bank</option>
+                        <option value="SBI">State Bank of India</option>
+                        <option value="AXIS">Axis Bank</option>
+                        <option value="KOTAK">Kotak Mahindra Bank</option>
+                        <option value="IDBI">IDBI Bank</option>
+                      </select>
                     </div>
-                  </div>
+                  )}
+
+                  {paymentMethod === "wallet" && (
+                    <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                      <p className="text-sm text-blue-900 dark:text-blue-100">
+                        Supported wallets: Google Pay, PhonePe, PayTM, Amazon Pay
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Security Badge */}
