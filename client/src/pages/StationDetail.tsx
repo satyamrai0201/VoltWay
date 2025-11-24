@@ -694,24 +694,91 @@ export default function StationDetail() {
             </DialogContent>
           </Dialog>
 
-          {/* Payment Success Animation */}
+          {/* Payment Success Animation - Google Style */}
           {isPaymentSuccess && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
               <div className="bg-background rounded-2xl p-8 text-center max-w-md mx-4 animate-in fade-in scale-95 duration-300">
                 <div className="mb-6 flex justify-center">
-                  <div className="relative w-20 h-20">
-                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-pulse"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Check size={40} className="text-green-500 animate-bounce" />
-                    </div>
-                  </div>
+                  <svg width="80" height="80" viewBox="0 0 80 80" className="animate-in fade-in scale-95 duration-500">
+                    {/* Outer rotating circle */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="35"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      className="text-lime-400"
+                      style={{
+                        opacity: 0.3,
+                        animation: "spin 2s linear infinite",
+                      }}
+                    />
+                    
+                    {/* Static lime circle background */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="35"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      className="text-lime-400"
+                      style={{
+                        strokeDasharray: "220",
+                        strokeDashoffset: "220",
+                        animation: "fillCircle 0.8s ease-out forwards 0.3s",
+                      }}
+                    />
+                    
+                    {/* Checkmark */}
+                    <path
+                      d="M 25 40 L 35 50 L 55 30"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-lime-400"
+                      style={{
+                        strokeDasharray: "50",
+                        strokeDashoffset: "50",
+                        animation: "drawCheckmark 0.6s ease-out forwards 0.6s",
+                      }}
+                    />
+                  </svg>
+                  
+                  <style>{`
+                    @keyframes fillCircle {
+                      to {
+                        stroke-dashoffset: 0;
+                      }
+                    }
+                    
+                    @keyframes drawCheckmark {
+                      to {
+                        stroke-dashoffset: 0;
+                      }
+                    }
+                    
+                    @keyframes spin {
+                      from {
+                        transform: rotate(0deg);
+                        transform-origin: 50% 50%;
+                      }
+                      to {
+                        transform: rotate(360deg);
+                        transform-origin: 50% 50%;
+                      }
+                    }
+                  `}</style>
                 </div>
-                <h2 className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">Payment Successful!</h2>
+                <h2 className="text-3xl font-bold mb-2" style={{ color: "#CCFF00" }}>Payment Successful!</h2>
                 <p className="text-muted-foreground mb-6">Your booking has been confirmed. Redirecting to your bookings...</p>
                 <div className="flex gap-2 justify-center">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0s" }}></div>
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0.2s" }}></div>
+                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0.4s" }}></div>
                 </div>
               </div>
             </div>
