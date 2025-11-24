@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import Navigation from "@/components/Navigation";
 import type { Booking, Station } from "@shared/schema";
 import { Link } from "wouter";
 
