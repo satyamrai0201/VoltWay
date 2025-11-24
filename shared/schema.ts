@@ -33,6 +33,7 @@ export const stations = pgTable("stations", {
   availableSlots: integer("available_slots").default(1).notNull(),
   amenities: text("amenities").array(),
   isActive: boolean("is_active").default(true).notNull(),
+  isHomeStation: boolean("is_home_station").default(false).notNull(),
   rating: text("rating"),
   totalReviews: integer("total_reviews").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

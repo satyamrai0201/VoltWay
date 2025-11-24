@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Search, Zap, Star, MapPin, X } from "lucide-react";
+import { Search, Zap, Star, MapPin, X, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,7 @@ export default function FindStations() {
   const [searchCity, setSearchCity] = useState("");
   const [chargerType, setChargerType] = useState<string>("all");
   const [minPower, setMinPower] = useState<string>("all");
+  const [showHomeStationsOnly, setShowHomeStationsOnly] = useState(false);
   const [suggestions, setSuggestions] = useState<CityTip[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -129,6 +131,10 @@ export default function FindStations() {
     if (minPower !== "all" && station.powerOutput < parseInt(minPower)) {
       return false;
     }
+    // Filter by home stations only
+    if (showHomeStationsOnly && !station.isHomeStation) {
+      return false;
+    }
     return true;
   });
 
@@ -154,6 +160,23 @@ export default function FindStations() {
           </div>
 
           <div className="space-y-4">
+            {/* Home Stations Toggle */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-lime-50 dark:bg-lime-950/20 border border-lime-200 dark:border-lime-800">
+              <Checkbox 
+                id="home-stations" 
+                checked={showHomeStationsOnly}
+                onCheckedChange={(checked) => setShowHomeStationsOnly(checked as boolean)}
+                data-testid="checkbox-home-stations"
+              />
+              <label htmlFor="home-stations" className="flex-1 cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <Home size={16} className="text-lime-600 dark:text-lime-400" />
+                  <span className="text-sm font-semibold text-foreground">Home Stations Only</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Normal charger • Low rates • Community-hosted</p>
+              </label>
+            </div>
+
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
@@ -232,7 +255,7 @@ export default function FindStations() {
               <h2 className="text-lg font-semibold">
                 {filteredStations.length} Stations
               </h2>
-              {(searchCity || chargerType !== "all" || minPower !== "all") && (
+              {(searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -240,6 +263,7 @@ export default function FindStations() {
                     setSearchCity("");
                     setChargerType("all");
                     setMinPower("all");
+                    setShowHomeStationsOnly(false);
                   }}
                   data-testid="button-clear-filters"
                 >
@@ -272,14 +296,22 @@ export default function FindStations() {
                           />
                         )}
                         <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
                             <h3 className="font-semibold line-clamp-1">{station.name}</h3>
-                            {station.rating && (
-                              <Badge variant="secondary" className="shrink-0">
-                                <Star size={12} className="mr-1 fill-primary text-primary" />
-                                {station.rating}
-                              </Badge>
-                            )}
+                            <div className="flex gap-2 items-start">
+                              {station.isHomeStation && (
+                                <Badge className="shrink-0 bg-lime-100 dark:bg-lime-900 text-lime-900 dark:text-lime-100 border border-lime-300 dark:border-lime-700">
+                                  <Home size={12} className="mr-1" />
+                                  Home Station
+                                </Badge>
+                              )}
+                              {station.rating && (
+                                <Badge variant="secondary" className="shrink-0">
+                                  <Star size={12} className="mr-1 fill-primary text-primary" />
+                                  {station.rating}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {station.description}
@@ -288,7 +320,7 @@ export default function FindStations() {
                             <MapPin size={14} />
                             <span className="line-clamp-1">{station.city}, {station.state}</span>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 flex-wrap">
                             <Badge variant="outline">
                               <Zap size={12} className="mr-1" />
                               {station.chargerType}
@@ -296,6 +328,11 @@ export default function FindStations() {
                             <Badge variant="outline">
                               {station.powerOutput} kW
                             </Badge>
+                            {station.isHomeStation && (
+                              <Badge variant="outline" className="text-lime-600 dark:text-lime-400">
+                                Low rates
+                              </Badge>
+                            )}
                           </div>
                           <div className="flex items-center justify-between pt-2">
                             <span className="text-2xl font-bold text-primary">₹{station.pricePerHour}/hr</span>
