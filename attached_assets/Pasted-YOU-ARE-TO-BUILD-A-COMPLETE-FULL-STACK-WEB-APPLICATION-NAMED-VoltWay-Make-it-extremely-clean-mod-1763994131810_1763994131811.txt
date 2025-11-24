@@ -1,0 +1,218 @@
+YOU ARE TO BUILD A COMPLETE FULL-STACK WEB APPLICATION NAMED “VoltWay”. Make it extremely clean, modern, fast, responsive, and built in the most efficient, easiest-to-maintain structure possible. Use a file structure suited for Replit. Follow these rules strictly:
+
+⭐ TECH STACK REQUIREMENTS (MANDATORY)
+Frontend:
+* Next.js 14 (App Router)
+* TypeScript
+* Tailwind CSS
+* Framer Motion (micro animations)
+* Leaflet + OpenStreetMap tiles (no Google Maps)
+* Hero images from my uploaded files
+    * Use these: • /mnt/data/Screenshot 2025-11-24 at 2.33.10 PM.png • /mnt/data/Screenshot 2025-11-24 at 2.33.29 PM.png
+Backend:
+* Supabase (Postgres + Auth + Realtime)
+* Stripe (Test mode only)
+General:
+* Everything deployed inside Replit template (no external config complexity)
+* All pages must cleanly match the style of the provided reference screenshots
+* Use reusable components
+* Code must be readable, maintainable, cleanly commented
+
+⭐ VISUAL + UX GUIDELINES (MANDATORY)
+Match the reference designs exactly:
+Use style patterns from:
+* /mnt/data/Screenshot 2025-11-24 at 2.33.10 PM.png
+* /mnt/data/Screenshot 2025-11-24 at 2.33.29 PM.png
+Design Requirements:
+* Large rounded containers (28px radius)
+* Soft shadows
+* Very large display typography
+* Neon lime as accent
+* Clean dark section with 4 feature cards
+* Nothing cluttered; lots of white space
+* Minimal top navigation with pill background
+* Floating circular CTA buttons
+* Smooth animations
+
+⭐ CORE FEATURES (MUST BE IMPLEMENTED)
+1. Authentication
+* Supabase Auth: email+password (simple)
+* Show Login popup modal if user tries any protected action
+* Once logged in, top-right shows avatar → profile menu
+Login modal must include:
+* Email field
+* Password field
+* Sign In button
+* “Create account” link
+2. Profile Menu
+When logged in, clicking avatar shows dropdown:
+* My Profile
+* My Vehicles
+* Saved Stations
+* My Bookings
+* My Listings
+* Payment Methods
+* Settings
+* Logout
+3. Pages Required
+Public pages:
+* / Landing page (pixel-perfect reference design)
+* /stations (India-only map + list)
+* /stations/[id] Station detail
+* /pricing
+* /about
+* /contact
+* /insights
+User pages (login required):
+* /profile
+* /profile/vehicles
+* /saved
+* /bookings
+* /listings
+* /payments
+* /settings
+Owner / host pages:
+* /owner/dashboard
+* /owner/station/[id]
+Internal utility pages:
+* /admin/seed (to import demo data)
+
+⭐ FUNCTIONAL FEATURES (MANDATORY, EASY IMPLEMENTATION)
+1. EV Station Finder (Map + List)
+* Leaflet map restricted to India only
+* Use OpenStreetMap tiles
+* Demo stations seeded only in Gurgaon
+* All markers interactive
+* Selecting a station opens station detail modal
+2. Station Detail Page
+Must show:
+* Name
+* Address
+* Distance from user
+* Connector types
+* Pricing
+* Host info
+* Photos
+* Availability (live)
+* “Book Now” button
+* “Schedule Charging” button
+3. Bookings
+Two modes:
+A: Immediate Booking
+* Book nearest available charger
+* Hold connector for 5 minutes
+* Uber-like status transitions:
+    * Requested
+    * Confirmed
+    * En Route
+    * Plugged
+    * Charging
+    * Completed
+B: Scheduled Booking
+* Select date & time
+* Check slot availability
+* Create scheduled booking
+4. Home Charging Station Listing
+User can list their home station:
+* Add address on map
+* Add connector type, power
+* Add price
+* Add availability hours
+* Upload images
+* Publish listing (after approval)
+5. Realtime Updates
+* Supabase Realtime:
+    * Station availability
+    * Booking status
+    * Host confirmations
+6. Payments
+* Stripe test mode only
+* PaymentIntent created on booking
+* Store test cards
+* Payment success/fail UI
+
+⭐ DATABASE SCHEMA (MANDATORY)
+Use Supabase with these tables:
+* profiles
+* stations
+* station_status
+* station_availability
+* bookings
+* payments
+* host_profiles
+* reviews
+* notifications
+Seed initial demo stations in Gurgaon (5–8 stations) with realistic coordinates.
+
+⭐ LANDING PAGE (MANDATORY EXACT DESIGN)
+Landing page must match reference images:
+Hero section:
+* Giant text (VoltWay) similar to SAPFORCE example
+* Use provided hero graphics
+* Subtitle + 2M+ users badge (with sample avatars)
+* Neon circular button “How it works?”
+Dark section:
+* Big headline “All the must haves of an EV charging app.”
+* 4 feature cards with icon bubbles
+* Dotted separator lines
+Footer:
+* Clean, simple, minimal
+
+⭐ COMPONENTS TO IMPLEMENT (MANDATORY)
+* Navigation bar
+* Login modal
+* Profile dropdown
+* Map component
+* Station card
+* Station detail modal
+* Booking modal
+* Booking timeline tracker
+* Host listing form
+* Payment UI
+* Notifications / Toasts
+* Footer
+
+⭐ INTERACTIONS + ANIMATIONS (MANDATORY)
+Use Framer Motion for:
+* Dropdown scale animation
+* Modal fade + scale
+* Station marker bounce
+* Hover micro-interactions
+* Card fade-in on scroll
+
+⭐ DEVELOPMENT REQUIREMENTS (MANDATORY)
+* Make entire project run in Replit
+* Use simplest config possible
+* Use server actions minimally, prefer API routes
+* Clean folder structure: /app
+*   /(public)
+*   /components
+*   /lib
+*   /api
+*   /styles
+* 
+* Code must be commented
+* All services must be abstracted (auth, map, booking, payment, listings)
+* Avoid clutter; UI must be breathable and modern
+
+⭐ DELIVERABLES YOU MUST GENERATE
+Deliver everything:
+1. Complete Next.js + Tailwind boilerplate
+2. Full app folder structure
+3. All pages + routes + layouts
+4. All components (styled and animated)
+5. All APIs (Supabase, bookings, listings, payments)
+6. All demo data seeds
+7. All UI styled exactly like references
+8. Complete map integration of India
+9. Auth modal + profile menu
+10. Booking flows (immediate + scheduled)
+11. Host listing flows
+12. Payment flow
+13. Realtime updates
+14. Everything fully wired and navigable
+
+⭐ FINAL REQUIREMENT
+MAKE THE ENTIRE WEBSITE BEAUTIFUL, CLEAN, NON-CLUTTERY, SUPER MODERN, AND EASY TO USE. FOLLOW THE DESIGN LANGUAGE STRICTLY. NO FEATURE SHOULD BE MISSING. NO PAGE SHOULD BE LEFT BLANK.
+
+
