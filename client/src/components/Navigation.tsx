@@ -17,10 +17,10 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
   const [profileOpen, setProfileOpen] = useState(false);
 
   const navLinks = [
-    { label: "Stations", href: "/stations" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "About", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Find Stations", href: "/find-stations" },
+    { label: "My Bookings", href: "/bookings" },
+    { label: "Host Dashboard", href: "/host/dashboard" },
+    { label: "Become a Host", href: "/host/new" },
   ];
 
   return (

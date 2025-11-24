@@ -1,0 +1,182 @@
+import { useState } from "react";
+import { User, Mail, Phone, Edit, Save } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Profile() {
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+  const [firstName, setFirstName] = useState("John");
+  const [lastName, setLastName] = useState("Doe");
+  const [email, setEmail] = useState("john.doe@example.com");
+  const [phone, setPhone] = useState("+91 98765 43210");
+
+  const handleSave = () => {
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been updated successfully.",
+    });
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-6 py-12 max-w-4xl">
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-6xl font-bold" data-testid="heading-profile">
+              Profile
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Manage your account settings
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>Personal Information</CardTitle>
+              <Button
+                variant={isEditing ? "default" : "outline"}
+                onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                className="gap-2"
+                data-testid={isEditing ? "button-save" : "button-edit"}
+              >
+                {isEditing ? (
+                  <>
+                    <Save size={18} />
+                    Save
+                  </>
+                ) : (
+                  <>
+                    <Edit size={18} />
+                    Edit
+                  </>
+                )}
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center gap-6">
+                <Avatar className="w-24 h-24">
+                  <AvatarImage src="" />
+                  <AvatarFallback className="text-3xl">
+                    {firstName[0]}{lastName[0]}
+                  </AvatarFallback>
+                </Avatar>
+                {isEditing && (
+                  <Button variant="outline" data-testid="button-change-avatar">
+                    Change Avatar
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      disabled={!isEditing}
+                      className="pl-10"
+                      data-testid="input-first-name"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      disabled={!isEditing}
+                      className="pl-10"
+                      data-testid="input-last-name"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={!isEditing}
+                      className="pl-10"
+                      data-testid="input-email"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      disabled={!isEditing}
+                      className="pl-10"
+                      data-testid="input-phone"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="font-medium">Host Status</p>
+                  <p className="text-sm text-muted-foreground">
+                    Start hosting charging stations to earn revenue
+                  </p>
+                </div>
+                <Badge variant="outline" data-testid="badge-host-status">
+                  Not a Host
+                </Badge>
+              </div>
+              <Button variant="outline" className="w-full" data-testid="button-become-host">
+                Become a Host
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start" data-testid="button-change-password">
+                Change Password
+              </Button>
+              <Button variant="outline" className="w-full justify-start text-destructive" data-testid="button-delete-account">
+                Delete Account
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

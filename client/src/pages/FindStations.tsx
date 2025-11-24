@@ -1,0 +1,232 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { Search, Filter, Zap, Star, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Station } from "@shared/schema";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { Link } from "wouter";
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
+export default function FindStations() {
+  const [searchCity, setSearchCity] = useState("");
+  const [chargerType, setChargerType] = useState<string>("");
+  const [minPower, setMinPower] = useState<string>("");
+  const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]);
+
+  const { data: stations, isLoading } = useQuery<Station[]>({
+    queryKey: ["/api/stations", searchCity, chargerType, minPower],
+  });
+
+  const filteredStations = stations || [];
+
+  const handleSearch = () => {
+    if (filteredStations.length > 0) {
+      const firstStation = filteredStations[0];
+      setMapCenter([parseFloat(firstStation.latitude), parseFloat(firstStation.longitude)]);
+    }
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+      <div className="w-96 border-r overflow-y-auto p-6 space-y-6">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold" data-testid="heading-find-stations">
+            Find Stations
+          </h1>
+          <p className="text-muted-foreground">
+            Discover charging stations near you
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                placeholder="Search city..."
+                value={searchCity}
+                onChange={(e) => setSearchCity(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-city"
+              />
+            </div>
+            <Button onClick={handleSearch} data-testid="button-search">
+              <Filter size={18} />
+            </Button>
+          </div>
+
+          <Select value={chargerType} onValueChange={setChargerType}>
+            <SelectTrigger data-testid="select-charger-type">
+              <SelectValue placeholder="Charger Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="CCS2">CCS2</SelectItem>
+              <SelectItem value="Type 2">Type 2</SelectItem>
+              <SelectItem value="CHAdeMO">CHAdeMO</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={minPower} onValueChange={setMinPower}>
+            <SelectTrigger data-testid="select-min-power">
+              <SelectValue placeholder="Min Power Output" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Power</SelectItem>
+              <SelectItem value="22">22 kW+</SelectItem>
+              <SelectItem value="50">50 kW+</SelectItem>
+              <SelectItem value="150">150 kW+</SelectItem>
+              <SelectItem value="350">350 kW+</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              {filteredStations.length} Stations
+            </h2>
+            {searchCity && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchCity("");
+                  setChargerType("");
+                  setMinPower("");
+                }}
+                data-testid="button-clear-filters"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <Skeleton className="h-32 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </>
+          ) : (
+            <>
+              {filteredStations.map((station) => (
+                <Link key={station.id} href={`/stations/${station.id}`}>
+                  <Card className="hover-elevate cursor-pointer" data-testid={`card-station-${station.id}`}>
+                    <CardContent className="p-4 space-y-3">
+                      {station.imageUrl && (
+                        <img
+                          src={station.imageUrl}
+                          alt={station.name}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-semibold line-clamp-1">{station.name}</h3>
+                          {station.rating && (
+                            <Badge variant="secondary" className="shrink-0">
+                              <Star size={12} className="mr-1 fill-primary text-primary" />
+                              {station.rating}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {station.description}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin size={14} />
+                          <span className="line-clamp-1">{station.city}, {station.state}</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Badge variant="outline">
+                            <Zap size={12} className="mr-1" />
+                            {station.chargerType}
+                          </Badge>
+                          <Badge variant="outline">
+                            {station.powerOutput} kW
+                          </Badge>
+                        </div>
+                        <div className="flex items-center justify-between pt-2">
+                          <span className="text-2xl font-bold text-primary">
+                            ₹{station.pricePerHour}
+                            <span className="text-sm text-muted-foreground font-normal">/hr</span>
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {station.availableSlots} slots
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 relative">
+        <MapContainer
+          center={mapCenter}
+          zoom={5}
+          style={{ height: "100%", width: "100%" }}
+          className="z-0"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {filteredStations.map((station) => (
+            <Marker
+              key={station.id}
+              position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+            >
+              <Popup>
+                <div className="space-y-2 p-2">
+                  <h3 className="font-semibold">{station.name}</h3>
+                  <p className="text-sm">{station.address}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{station.chargerType}</Badge>
+                    <Badge variant="outline">{station.powerOutput} kW</Badge>
+                  </div>
+                  <div className="text-lg font-bold text-primary">
+                    ₹{station.pricePerHour}/hr
+                  </div>
+                  <Link href={`/stations/${station.id}`}>
+                    <Button size="sm" className="w-full">
+                      View Details
+                    </Button>
+                  </Link>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
+      </div>
+    </div>
+  );
+}
