@@ -29,12 +29,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   // Auth endpoints
-  app.get("/api/auth/user", async (req: Request & { user?: any }, res) => {
+  app.get("/api/auth/user", async (req: Request & { user?: any; session?: any }, res) => {
     try {
-      if (!req.user?.id) {
+      // Check session first, then user object
+      const userId = (req.session as any)?.userId || req.user?.id;
+      if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
-      const user = await storage.getUser(req.user.id);
+      const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -45,11 +47,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Mock login endpoint for demo purposes
-  app.get("/api/login", async (req: Request & { user?: any }, res) => {
+  app.get("/api/login", async (req: Request & { user?: any; session?: any }, res) => {
     try {
       // For demo, log in as the first sample user
       req.user = { id: "sample-user-1" };
-      res.json({ message: "Logged in successfully", user: { id: "sample-user-1" } });
+      if (req.session) {
+        req.session.userId = "sample-user-1";
+      }
+      // Redirect to home after login
+      res.redirect("/");
     } catch (error) {
       res.status(500).json({ error: "Login failed" });
     }
