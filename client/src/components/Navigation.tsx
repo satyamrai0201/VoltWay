@@ -17,6 +17,12 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
   const [profileOpen, setProfileOpen] = useState(false);
 
   const navLinks = [
+    { label: "Stations", href: "/find-stations" },
+    { label: "Bookings", href: "/bookings" },
+    { label: "Dashboard", href: "/host/dashboard" },
+  ];
+
+  const mobileNavLinks = [
     { label: "Find Stations", href: "/find-stations" },
     { label: "My Bookings", href: "/bookings" },
     { label: "Host Dashboard", href: "/host/dashboard" },
@@ -104,8 +110,8 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
               className="md:hidden mt-4 pt-4 border-t overflow-hidden"
             >
               <div className="flex flex-col gap-2">
-                {navLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="px-4 py-2 text-sm font-medium hover-elevate rounded-full block" data-testid={`link-mobile-${link.label.toLowerCase()}`}>
+                {mobileNavLinks.map((link) => (
+                  <Link key={link.href} href={link.href} className="px-4 py-2 text-sm font-medium hover-elevate rounded-full block" data-testid={`link-mobile-${link.label.toLowerCase().replace(/\s+/g, "-")}`}>
                     {link.label}
                   </Link>
                 ))}

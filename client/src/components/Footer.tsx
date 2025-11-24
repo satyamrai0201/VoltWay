@@ -6,36 +6,30 @@ export default function Footer() {
     {
       title: "Product",
       links: [
-        { label: "Find Stations", href: "/stations" },
-        { label: "Pricing", href: "/pricing" },
-        { label: "Features", href: "/features" },
-        { label: "Mobile App", href: "/app" },
+        { id: "find-stations", label: "Find Stations", href: "/find-stations" },
+        { id: "my-bookings", label: "My Bookings", href: "/bookings" },
+        { id: "how-it-works", label: "How It Works", href: "/" },
       ],
     },
     {
-      title: "Company",
+      title: "For Hosts",
       links: [
-        { label: "About Us", href: "/about" },
-        { label: "Careers", href: "/careers" },
-        { label: "Contact", href: "/contact" },
-        { label: "Blog", href: "/blog" },
+        { id: "become-host", label: "Become a Host", href: "/host/new" },
+        { id: "host-dashboard", label: "Host Dashboard", href: "/host/dashboard" },
       ],
     },
     {
-      title: "Resources",
+      title: "Account",
       links: [
-        { label: "Help Center", href: "/help" },
-        { label: "FAQs", href: "/faq" },
-        { label: "API Docs", href: "/docs" },
-        { label: "Partners", href: "/partners" },
+        { id: "profile", label: "Profile", href: "/profile" },
+        { id: "my-account", label: "My Account", href: "/profile" },
       ],
     },
     {
-      title: "Legal",
+      title: "Support",
       links: [
-        { label: "Privacy Policy", href: "/privacy" },
-        { label: "Terms of Service", href: "/terms" },
-        { label: "Cookie Policy", href: "/cookies" },
+        { id: "help", label: "Help", href: "/" },
+        { id: "contact", label: "Contact Us", href: "/" },
       ],
     },
   ];
@@ -55,8 +49,8 @@ export default function Footer() {
             <div key={section.title}>
               <h4 className="font-semibold mb-4 text-foreground">{section.title}</h4>
               <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.href}>
+                {section.links.map((link: any) => (
+                  <li key={link.id}>
                     <Link
                       href={link.href}
                       className="text-muted-foreground hover:text-foreground transition-colors text-sm"
