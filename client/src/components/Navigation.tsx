@@ -13,7 +13,7 @@ interface NavigationProps {
   onLogout?: () => void;
 }
 
-export default function Navigation({ isLoggedIn: propIsLoggedIn, onLoginClick, onLogout }: NavigationProps) {
+export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationProps) {
   const { isAuthenticated } = useAuth();
   const isLoggedIn = propIsLoggedIn !== undefined ? propIsLoggedIn : isAuthenticated;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn, onLoginClick, o
                 </button>
                 <AnimatePresence>
                   {profileOpen && (
-                    <ProfileDropdown onClose={() => setProfileOpen(false)} onLogout={onLogout} />
+                    <ProfileDropdown onClose={() => setProfileOpen(false)} />
                   )}
                 </AnimatePresence>
               </div>

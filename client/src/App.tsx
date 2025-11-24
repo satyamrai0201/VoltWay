@@ -14,7 +14,7 @@ import Help from "@/pages/Help";
 import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
-import { LoginPrompt } from "@/components/LoginPrompt";
+import LoginPrompt from "@/components/LoginPrompt";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

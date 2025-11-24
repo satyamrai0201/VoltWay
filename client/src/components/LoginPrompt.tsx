@@ -1,10 +1,7 @@
-import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Zap } from "lucide-react";
 
-export function LoginPrompt() {
-  const [, setLocation] = useLocation();
-
+export default function LoginPrompt() {
   const handleLogin = () => {
     window.location.href = "/api/login";
   };

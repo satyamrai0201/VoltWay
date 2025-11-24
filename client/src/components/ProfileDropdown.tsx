@@ -1,31 +1,29 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
-import { User, Car, Bookmark, Calendar, List, CreditCard, Settings, LogOut } from "lucide-react";
+import { User, Bookmark, Calendar, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileDropdownProps {
   onClose: () => void;
-  onLogout?: () => void;
 }
 
-export default function ProfileDropdown({ onClose, onLogout }: ProfileDropdownProps) {
+export default function ProfileDropdown({ onClose }: ProfileDropdownProps) {
+  const { logout } = useAuth();
+
   const menuItems = [
     { icon: User, label: "My Profile", href: "/profile" },
-    { icon: Car, label: "My Vehicles", href: "/profile/vehicles" },
-    { icon: Bookmark, label: "Saved Stations", href: "/saved" },
     { icon: Calendar, label: "My Bookings", href: "/bookings" },
-    { icon: List, label: "My Listings", href: "/listings" },
-    { icon: CreditCard, label: "Payment Methods", href: "/payments" },
-    { icon: Settings, label: "Settings", href: "/settings" },
+    { icon: Bookmark, label: "Saved Stations", href: "/saved" },
   ];
 
   const handleItemClick = () => {
     onClose();
   };
 
-  const handleLogout = () => {
-    onLogout?.();
+  const handleLogout = async () => {
     onClose();
+    await logout();
   };
 
   return (

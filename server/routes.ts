@@ -61,11 +61,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock logout endpoint
+  // Logout endpoint
   app.get("/api/logout", (req: any, res) => {
-    if (req.logout) {
-      req.logout((err: any) => {
+    if (req.session) {
+      req.session.destroy((err: any) => {
         if (err) return res.status(500).json({ error: "Logout failed" });
+        res.clearCookie("connect.sid");
         res.json({ message: "Logged out successfully" });
       });
     } else {

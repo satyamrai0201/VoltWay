@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 
 export interface AuthUser {
   id: string;
@@ -14,9 +15,21 @@ export function useAuth() {
     retry: false,
   });
 
+  const logout = async () => {
+    try {
+      await fetch("/api/logout");
+      // Clear cache and redirect to login
+      queryClient.clear();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return {
     user: user as AuthUser | undefined,
     isLoading,
     isAuthenticated: !!user,
+    logout,
   };
 }
