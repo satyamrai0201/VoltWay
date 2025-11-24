@@ -51,7 +51,7 @@ export default function Navigation({ isLoggedIn = false, onLoginClick, onLogout 
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 ml-auto">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden hover-elevate rounded-full p-2"

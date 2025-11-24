@@ -24,6 +24,13 @@ export default function Footer() {
         { id: "profile", label: "Profile", href: "/profile" },
       ],
     },
+    {
+      title: "Support",
+      links: [
+        { id: "help", label: "Help Center", href: "/help" },
+        { id: "contact", label: "Contact Us", href: "/contact" },
+      ],
+    },
   ];
 
   const socialLinks = [

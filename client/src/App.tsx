@@ -10,6 +10,8 @@ import MyBookings from "@/pages/MyBookings";
 import HostDashboard from "@/pages/HostDashboard";
 import BecomeHost from "@/pages/BecomeHost";
 import Profile from "@/pages/Profile";
+import Help from "@/pages/Help";
+import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginPrompt } from "@/components/LoginPrompt";
@@ -38,6 +40,8 @@ function Router() {
       <Route path="/host/dashboard" component={HostDashboard} />
       <Route path="/host/new" component={BecomeHost} />
       <Route path="/profile" component={Profile} />
+      <Route path="/help" component={Help} />
+      <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>
   );
