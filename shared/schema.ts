@@ -80,6 +80,9 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
 });
 
 export const insertReviewSchema = createInsertSchema(reviews).omit({

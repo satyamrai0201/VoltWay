@@ -110,12 +110,12 @@ export default function StationDetail() {
     createBooking.mutate({
       userId: user.id,
       stationId,
-      startTime: start,
-      endTime: end,
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
       totalPrice,
       vehicleModel,
       specialRequests,
-    });
+    } as any);
   };
 
   if (stationLoading) {
