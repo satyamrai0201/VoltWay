@@ -33,6 +33,7 @@ export default function StationDetail() {
   const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -71,28 +72,6 @@ export default function StationDetail() {
     queryKey: ["/api/stations", stationId, "reviews"],
   });
 
-  const playSuccessSound = () => {
-    // Create a simple success beep using Web Audio API
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const now = audioContext.currentTime;
-    
-    // Create multiple beeps for celebration effect
-    [0, 0.1, 0.2].forEach((delay) => {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-      
-      osc.frequency.value = 800 + delay * 200;
-      gain.gain.setValueAtTime(0.3, now + delay);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.15);
-      
-      osc.start(now + delay);
-      osc.stop(now + delay + 0.15);
-    });
-  };
-
   const createBooking = useMutation({
     mutationFn: async (data: any) => {
       const response = await fetch("/api/bookings", {
@@ -105,18 +84,19 @@ export default function StationDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      playSuccessSound();
-      setIsPaymentSuccess(true);
+      setIsProcessing(false);
       setIsPaymentOpen(false);
+      setIsPaymentSuccess(true);
       
-      // Auto-redirect to bookings after 3 seconds
+      // Auto-redirect to bookings after tick animation completes
       setTimeout(() => {
         resetForm();
         setIsPaymentSuccess(false);
         navigate("/bookings");
-      }, 3000);
+      }, 3500);
     },
     onError: () => {
+      setIsProcessing(false);
       toast({
         title: "Booking failed",
         description: "Please try again later.",
@@ -319,12 +299,7 @@ export default function StationDetail() {
       }
     }
 
-    const methodLabel = paymentMethods.find(m => m.id === paymentMethod)?.label || "Payment";
-    toast({
-      title: "Processing payment...",
-      description: `Please wait while we process your ${methodLabel}.`,
-    });
-
+    setIsProcessing(true);
     setTimeout(() => {
       createBooking.mutate(pendingBookingData);
     }, 1500);
@@ -671,82 +646,94 @@ export default function StationDetail() {
                   <span>Secure payment</span>
                 </div>
 
+                {/* Processing State */}
+                {isProcessing && (
+                  <div className="space-y-4">
+                    <div className="flex justify-center items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Processing your payment...</p>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPaymentOpen(false)}
-                    className="flex-1"
-                    data-testid="button-cancel-payment"
-                  >
-                    Back
-                  </Button>
-                  <Button
-                    onClick={handlePayment}
-                    disabled={createBooking.isPending}
-                    className="flex-1"
-                    data-testid="button-pay-now"
-                  >
-                    {createBooking.isPending ? "Processing..." : "Pay Now"}
-                  </Button>
-                </div>
+                {!isProcessing && (
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsPaymentOpen(false)}
+                      className="flex-1"
+                      data-testid="button-cancel-payment"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      onClick={handlePayment}
+                      disabled={createBooking.isPending}
+                      className="flex-1"
+                      data-testid="button-pay-now"
+                    >
+                      {createBooking.isPending ? "Processing..." : "Pay Now"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
 
-          {/* Payment Success Animation - Google Style */}
+          {/* Payment Success Animation - Full Screen */}
           {isPaymentSuccess && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-              <div className="bg-background rounded-2xl p-8 text-center max-w-md mx-4 animate-in fade-in scale-95 duration-300">
-                <div className="mb-6 flex justify-center">
-                  <svg width="80" height="80" viewBox="0 0 80 80" className="animate-in fade-in scale-95 duration-500">
-                    {/* Outer rotating circle */}
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="35"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      className="text-lime-400"
-                      style={{
-                        opacity: 0.3,
-                        animation: "spin 2s linear infinite",
-                      }}
-                    />
-                    
-                    {/* Static lime circle background */}
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="35"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-lime-400"
-                      style={{
-                        strokeDasharray: "220",
-                        strokeDashoffset: "220",
-                        animation: "fillCircle 0.8s ease-out forwards 0.3s",
-                      }}
-                    />
-                    
-                    {/* Checkmark */}
-                    <path
-                      d="M 25 40 L 35 50 L 55 30"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-lime-400"
-                      style={{
-                        strokeDasharray: "50",
-                        strokeDashoffset: "50",
-                        animation: "drawCheckmark 0.6s ease-out forwards 0.6s",
-                      }}
-                    />
-                  </svg>
+            <div className="fixed inset-0 bg-background flex items-center justify-center z-50 animate-in fade-in duration-300">
+              <div className="text-center space-y-8">
+                <svg width="120" height="120" viewBox="0 0 120 120" className="mx-auto">
+                  {/* Outer rotating circle - subtle */}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{
+                      color: "#CCFF00",
+                      opacity: 0.2,
+                      animation: "spin 3s linear infinite",
+                    }}
+                  />
+                  
+                  {/* Main circle */}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="50"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    style={{
+                      color: "#CCFF00",
+                      strokeDasharray: "314",
+                      strokeDashoffset: "314",
+                      animation: "fillCircle 1s ease-out forwards 0.2s",
+                    }}
+                  />
+                  
+                  {/* Checkmark */}
+                  <path
+                    d="M 35 60 L 50 75 L 85 40"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      color: "#CCFF00",
+                      strokeDasharray: "80",
+                      strokeDashoffset: "80",
+                      animation: "drawCheckmark 0.8s ease-out forwards 0.8s",
+                    }}
+                  />
                   
                   <style>{`
                     @keyframes fillCircle {
@@ -772,13 +759,11 @@ export default function StationDetail() {
                       }
                     }
                   `}</style>
-                </div>
-                <h2 className="text-3xl font-bold mb-2" style={{ color: "#CCFF00" }}>Payment Successful!</h2>
-                <p className="text-muted-foreground mb-6">Your booking has been confirmed. Redirecting to your bookings...</p>
-                <div className="flex gap-2 justify-center">
-                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0s" }}></div>
-                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0.2s" }}></div>
-                  <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: "#CCFF00", animationDelay: "0.4s" }}></div>
+                </svg>
+                
+                <div className="space-y-2 animate-in fade-in duration-500" style={{ animationDelay: "1.2s" }}>
+                  <h1 className="text-5xl font-bold" style={{ color: "#CCFF00" }}>Payment Successful!</h1>
+                  <p className="text-xl text-muted-foreground">Your booking has been confirmed</p>
                 </div>
               </div>
             </div>
