@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Search, Filter, Zap, Star, MapPin } from "lucide-react";
+import { Search, Zap, Star, MapPin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,14 +27,62 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+interface CityTip {
+  name: string;
+  lat: string;
+  lon: string;
+}
+
 export default function FindStations() {
   const [searchCity, setSearchCity] = useState("");
   const [chargerType, setChargerType] = useState<string>("all");
   const [minPower, setMinPower] = useState<string>("all");
+  const [suggestions, setSuggestions] = useState<CityTip[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const { data: stations, isLoading } = useQuery<Station[]>({
     queryKey: ["/api/stations"],
   });
+
+  // Fetch city suggestions from Nominatim API
+  useEffect(() => {
+    if (searchCity.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(searchCity)}&country=india&format=json&limit=5`
+        );
+        const data = await response.json();
+        
+        // Extract unique city names
+        const uniqueCities = new Map<string, CityTip>();
+        data.forEach((item: any) => {
+          const cityName = item.address?.city || item.name;
+          if (cityName && !uniqueCities.has(cityName.toLowerCase())) {
+            uniqueCities.set(cityName.toLowerCase(), {
+              name: cityName,
+              lat: item.lat,
+              lon: item.lon,
+            });
+          }
+        });
+        
+        setSuggestions(Array.from(uniqueCities.values()).slice(0, 5));
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+        setSuggestions([]);
+      }
+    };
+
+    const timer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timer);
+  }, [searchCity]);
 
   // City to coordinates mapping
   const cityCoordinates: Record<string, [number, number]> = {
@@ -89,9 +137,45 @@ export default function FindStations() {
                 placeholder="Search city (e.g., Gurgaon)..."
                 value={searchCity}
                 onChange={(e) => setSearchCity(e.target.value)}
+                onFocus={() => searchCity.length >= 2 && setShowSuggestions(true)}
                 className="pl-10"
                 data-testid="input-search-city"
               />
+              {searchCity && (
+                <button
+                  onClick={() => {
+                    setSearchCity("");
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  data-testid="button-clear-search"
+                >
+                  <X size={18} />
+                </button>
+              )}
+              
+              {/* City Suggestions Dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card border rounded-md shadow-lg z-50" data-testid="city-suggestions">
+                  {suggestions.map((suggestion) => (
+                    <button
+                      key={`${suggestion.name}-${suggestion.lat}`}
+                      onClick={() => {
+                        setSearchCity(suggestion.name);
+                        setShowSuggestions(false);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-muted transition-colors text-sm border-b last:border-b-0"
+                      data-testid={`suggestion-${suggestion.name.toLowerCase()}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} className="text-muted-foreground" />
+                        <span>{suggestion.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Select value={chargerType} onValueChange={setChargerType}>
