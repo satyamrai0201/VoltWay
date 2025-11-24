@@ -17,75 +17,112 @@ export default function Orb3D() {
     
     renderer.setSize(width, height);
     renderer.setClearColor(0x000000, 0);
+    renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     
-    camera.position.z = 3;
+    camera.position.z = 2.8;
 
-    // Create neon lime orb
-    const geometry = new THREE.IcosahedronGeometry(1, 16);
+    // Create main glossy orb with high shininess
+    const geometry = new THREE.IcosahedronGeometry(1, 20);
     
-    const material = new THREE.MeshPhongMaterial({
+    const material = new THREE.MeshStandardMaterial({
       color: 0xccff00,
       emissive: 0xccff00,
-      emissiveIntensity: 0.3,
-      shininess: 100,
+      emissiveIntensity: 0.2,
+      metalness: 0.3,
+      roughness: 0.2,
       wireframe: false,
     });
     
     const orb = new THREE.Mesh(geometry, material);
     scene.add(orb);
 
-    // Create wireframe overlay
-    const wireframeGeometry = new THREE.IcosahedronGeometry(1.05, 16);
+    // Create sharp wireframe overlay
+    const wireframeGeometry = new THREE.IcosahedronGeometry(1.01, 20);
     const wireframeMaterial = new THREE.MeshPhongMaterial({
       color: 0xccff00,
       emissive: 0xccff00,
-      emissiveIntensity: 0.5,
+      emissiveIntensity: 0.6,
       wireframe: true,
       transparent: true,
-      opacity: 0.3,
+      opacity: 0.6,
+      linewidth: 2,
     });
     const wireframe = new THREE.Mesh(wireframeGeometry, wireframeMaterial);
     scene.add(wireframe);
 
-    // Add glow effect with larger transparent sphere
-    const glowGeometry = new THREE.IcosahedronGeometry(1.2, 8);
-    const glowMaterial = new THREE.MeshBasicMaterial({
+    // Create inner light glow sphere
+    const innerGlowGeometry = new THREE.IcosahedronGeometry(0.95, 16);
+    const innerGlowMaterial = new THREE.MeshBasicMaterial({
       color: 0xccff00,
       transparent: true,
-      opacity: 0.1,
+      opacity: 0.15,
     });
-    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
-    scene.add(glow);
+    const innerGlow = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial);
+    scene.add(innerGlow);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Create outer glow halo
+    const outerGlowGeometry = new THREE.IcosahedronGeometry(1.25, 8);
+    const outerGlowMaterial = new THREE.MeshBasicMaterial({
+      color: 0xccff00,
+      transparent: true,
+      opacity: 0.08,
+    });
+    const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+    scene.add(outerGlow);
+
+    // Advanced lighting setup for realistic reflections
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
 
-    const pointLight = new THREE.PointLight(0xccff00, 1.5, 100);
-    pointLight.position.set(5, 5, 5);
-    scene.add(pointLight);
+    // Main key light - warm lime from top right
+    const keyLight = new THREE.DirectionalLight(0xccff00, 1.2);
+    keyLight.position.set(3, 3, 3);
+    scene.add(keyLight);
 
-    const pointLight2 = new THREE.PointLight(0xffffff, 0.8, 100);
-    pointLight2.position.set(-5, -5, 5);
+    // Fill light - white from left
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    fillLight.position.set(-4, 2, 2);
+    scene.add(fillLight);
+
+    // Back light - subtle from behind
+    const backLight = new THREE.DirectionalLight(0xccff00, 0.5);
+    backLight.position.set(-2, -2, -3);
+    scene.add(backLight);
+
+    // Point lights for additional highlights
+    const pointLight1 = new THREE.PointLight(0xffffff, 0.6, 100);
+    pointLight1.position.set(5, 5, 5);
+    scene.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(0xccff00, 0.4, 100);
+    pointLight2.position.set(-5, -5, 3);
     scene.add(pointLight2);
 
     // Animation loop
+    let animationFrameId: number;
     const animate = () => {
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
 
-      orb.rotation.x += 0.003;
-      orb.rotation.y += 0.005;
+      // Smooth rotation
+      orb.rotation.x += 0.0015;
+      orb.rotation.y += 0.0025;
       
-      wireframe.rotation.x -= 0.004;
-      wireframe.rotation.y -= 0.006;
+      // Faster wireframe rotation for dynamic effect
+      wireframe.rotation.x -= 0.002;
+      wireframe.rotation.y -= 0.003;
       
-      glow.rotation.x += 0.002;
-      glow.rotation.y += 0.003;
+      // Inner glow subtle rotation
+      innerGlow.rotation.x += 0.001;
+      innerGlow.rotation.y += 0.0015;
 
-      // Pulse effect
-      const scale = 0.95 + Math.sin(Date.now() * 0.001) * 0.05;
-      orb.scale.set(scale, scale, scale);
+      // Outer glow counter rotation
+      outerGlow.rotation.x -= 0.0008;
+      outerGlow.rotation.y -= 0.0012;
+
+      // Subtle pulsing effect on glow
+      const glowScale = 0.98 + Math.sin(Date.now() * 0.0008) * 0.03;
+      outerGlow.scale.set(glowScale, glowScale, glowScale);
 
       renderer.render(scene, camera);
     };
@@ -107,14 +144,19 @@ export default function Orb3D() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
       renderer.dispose();
       geometry.dispose();
       material.dispose();
       wireframeGeometry.dispose();
       wireframeMaterial.dispose();
-      glowGeometry.dispose();
-      glowMaterial.dispose();
-      containerRef.current?.removeChild(renderer.domElement);
+      innerGlowGeometry.dispose();
+      innerGlowMaterial.dispose();
+      outerGlowGeometry.dispose();
+      outerGlowMaterial.dispose();
+      if (containerRef.current?.contains(renderer.domElement)) {
+        containerRef.current.removeChild(renderer.domElement);
+      }
     };
   }, []);
 
