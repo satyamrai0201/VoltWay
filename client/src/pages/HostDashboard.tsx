@@ -4,14 +4,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
 import type { Station } from "@shared/schema";
 import { Link } from "wouter";
 
-const MOCK_HOST_ID = "sample-host-1";
-
 export default function HostDashboard() {
+  const { user } = useAuth();
+
   const { data: stations, isLoading } = useQuery<Station[]>({
-    queryKey: ["/api/host", MOCK_HOST_ID, "stations"],
+    queryKey: ["/api/host", user?.id, "stations"],
+    enabled: !!user,
   });
 
   const myStations = stations || [];
@@ -23,7 +26,8 @@ export default function HostDashboard() {
   const totalRevenue = "₹24,580";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
+      <Navigation />
       <div className="container mx-auto px-6 py-12 max-w-7xl">
         <div className="space-y-8">
           <div className="flex items-center justify-between">

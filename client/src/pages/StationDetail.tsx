@@ -21,15 +21,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { Station, Review, Booking } from "@shared/schema";
 import { Link } from "wouter";
-
-const MOCK_USER_ID = "sample-user-1";
 
 export default function StationDetail() {
   const [, params] = useRoute("/stations/:id");
   const stationId = params?.id || "";
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -74,6 +74,15 @@ export default function StationDetail() {
   });
 
   const handleBooking = () => {
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You must be logged in to book a station.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!startDate || !startTime || !endDate || !endTime) {
       toast({
         title: "Missing information",
@@ -85,11 +94,21 @@ export default function StationDetail() {
 
     const start = new Date(`${startDate}T${startTime}`);
     const end = new Date(`${endDate}T${endTime}`);
+    
+    if (end <= start) {
+      toast({
+        title: "Invalid time range",
+        description: "End time must be after start time.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     const totalPrice = (hours * parseFloat(station?.pricePerHour || "0")).toFixed(2);
 
     createBooking.mutate({
-      userId: MOCK_USER_ID,
+      userId: user.id,
       stationId,
       startTime: start,
       endTime: end,

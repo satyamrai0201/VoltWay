@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import Navigation from "@/components/Navigation";
 import {
   Select,
   SelectContent,
@@ -26,11 +27,10 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import { insertStationSchema } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
-
-const MOCK_HOST_ID = "sample-host-1";
 
 const formSchema = insertStationSchema.extend({
   latitude: z.string(),
@@ -41,13 +41,14 @@ const formSchema = insertStationSchema.extend({
 export default function BecomeHost() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [amenities, setAmenities] = useState<string[]>([]);
   const [amenityInput, setAmenityInput] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      hostId: MOCK_HOST_ID,
+      hostId: user?.id || "",
       name: "",
       description: "",
       address: "",
@@ -107,7 +108,8 @@ export default function BecomeHost() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
+      <Navigation />
       <div className="container mx-auto px-6 py-12 max-w-4xl">
         <div className="space-y-8">
           <div className="space-y-4">

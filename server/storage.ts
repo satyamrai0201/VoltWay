@@ -352,6 +352,8 @@ export class MemStorage implements IStorage {
     const station = await this.getStation(insertBooking.stationId);
     if (!station) throw new Error("Station not found");
     
+    if (station.availableSlots <= 0) throw new Error("No available slots");
+    
     const id = randomUUID();
     const booking: Booking = {
       userId: insertBooking.userId,
@@ -363,12 +365,18 @@ export class MemStorage implements IStorage {
       vehicleModel: insertBooking.vehicleModel ?? null,
       specialRequests: insertBooking.specialRequests ?? null,
       id,
-      status: insertBooking.status ?? "pending",
-      paymentStatus: insertBooking.paymentStatus ?? "pending",
+      status: insertBooking.status ?? "confirmed",
+      paymentStatus: insertBooking.paymentStatus ?? "paid",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
     this.bookings.set(id, booking);
+    
+    // Decrement available slots
+    await this.updateStation(insertBooking.stationId, {
+      availableSlots: station.availableSlots - 1,
+    });
+    
     return booking;
   }
 

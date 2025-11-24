@@ -7,18 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
 import type { Booking, Station } from "@shared/schema";
 import { Link } from "wouter";
-
-const MOCK_USER_ID = "sample-user-1";
 
 interface BookingWithStation extends Booking {
   station?: Station;
 }
 
 export default function MyBookings() {
+  const { user, isLoading: authLoading } = useAuth();
+
   const { data: bookings, isLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/bookings/user", MOCK_USER_ID],
+    queryKey: ["/api/bookings/user", user?.id],
+    enabled: !!user,
   });
 
   const { data: stations } = useQuery<Station[]>({
@@ -64,6 +66,20 @@ export default function MyBookings() {
         return <Badge variant="outline">{status}</Badge>;
     }
   };
+
+  if (!user && !authLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-20 flex items-center justify-center">
+        <Navigation />
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">Please log in to view bookings</h2>
+          <Link href="/">
+            <Button>Go Home</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const BookingCard = ({ booking }: { booking: BookingWithStation }) => (
     <Card className="hover-elevate" data-testid={`card-booking-${booking.id}`}>
