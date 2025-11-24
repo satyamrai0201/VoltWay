@@ -139,11 +139,24 @@ export default function FindStations() {
   });
 
   // Determine map center based on search
-  const mapCenter: [number, number] = searchCity 
-    ? cityCoordinates[searchCity.toLowerCase()] || [28.4595, 77.0266]
-    : filteredStations.length > 0 
-      ? [parseFloat(filteredStations[0].latitude), parseFloat(filteredStations[0].longitude)]
-      : [28.4595, 77.0266]; // Default to Gurgaon
+  const getValidCoordinates = (): [number, number] => {
+    if (searchCity) {
+      const cityCoord = cityCoordinates[searchCity.toLowerCase()];
+      if (cityCoord) return cityCoord;
+    }
+    
+    if (filteredStations.length > 0) {
+      const lat = parseFloat(filteredStations[0].latitude);
+      const lon = parseFloat(filteredStations[0].longitude);
+      if (!isNaN(lat) && !isNaN(lon)) {
+        return [lat, lon];
+      }
+    }
+    
+    return [28.4595, 77.0266]; // Default to Gurgaon
+  };
+  
+  const mapCenter: [number, number] = getValidCoordinates();
 
   return (
     <div className="min-h-screen bg-background pt-20">
