@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { format, addDays } from "date-fns";
 import { MapPin, Zap, Clock, Star, Calendar, ArrowLeft, Check, CreditCard, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,11 +27,13 @@ import { Link } from "wouter";
 
 export default function StationDetail() {
   const [, params] = useRoute("/stations/:id");
+  const [, navigate] = useLocation();
   const stationId = params?.id || "";
   const { toast } = useToast();
   const { user } = useAuth();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isPaymentSuccess, setIsPaymentSuccess] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [selectedPackage, setSelectedPackage] = useState<3 | 6 | 9 | 12 | "custom" | null>(null);
@@ -69,6 +71,28 @@ export default function StationDetail() {
     queryKey: ["/api/stations", stationId, "reviews"],
   });
 
+  const playSuccessSound = () => {
+    // Create a simple success beep using Web Audio API
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const now = audioContext.currentTime;
+    
+    // Create multiple beeps for celebration effect
+    [0, 0.1, 0.2].forEach((delay) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      
+      osc.frequency.value = 800 + delay * 200;
+      gain.gain.setValueAtTime(0.3, now + delay);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.15);
+      
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.15);
+    });
+  };
+
   const createBooking = useMutation({
     mutationFn: async (data: any) => {
       const response = await fetch("/api/bookings", {
@@ -81,13 +105,16 @@ export default function StationDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      toast({
-        title: "Booking confirmed!",
-        description: "Your charging session has been booked successfully.",
-      });
-      setIsBookingOpen(false);
+      playSuccessSound();
+      setIsPaymentSuccess(true);
       setIsPaymentOpen(false);
-      resetForm();
+      
+      // Auto-redirect to bookings after 3 seconds
+      setTimeout(() => {
+        resetForm();
+        setIsPaymentSuccess(false);
+        navigate("/my-bookings");
+      }, 3000);
     },
     onError: () => {
       toast({
@@ -376,7 +403,7 @@ export default function StationDetail() {
                   Book Now
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Book Charging Session</DialogTitle>
                   <DialogDescription>
@@ -666,6 +693,29 @@ export default function StationDetail() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Payment Success Animation */}
+          {isPaymentSuccess && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+              <div className="bg-background rounded-2xl p-8 text-center max-w-md mx-4 animate-in fade-in scale-95 duration-300">
+                <div className="mb-6 flex justify-center">
+                  <div className="relative w-20 h-20">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Check size={40} className="text-green-500 animate-bounce" />
+                    </div>
+                  </div>
+                </div>
+                <h2 className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">Payment Successful!</h2>
+                <p className="text-muted-foreground mb-6">Your booking has been confirmed. Redirecting to your bookings...</p>
+                <div className="flex gap-2 justify-center">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <Card>
             <CardHeader>
