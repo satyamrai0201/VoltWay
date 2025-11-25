@@ -74,6 +74,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile endpoint
+  app.patch("/api/auth/user", async (req: Request & { user?: any; session?: any }, res) => {
+    try {
+      const userId = (req.session as any)?.userId || req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      const { firstName, lastName, phoneNumber } = req.body;
+      const updatedUser = await storage.updateUser(userId, {
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        phoneNumber: phoneNumber || undefined,
+      });
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
   app.get("/api/stations", async (req, res) => {
     try {
       const { city, chargerType, minPower } = req.query;

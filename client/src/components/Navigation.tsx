@@ -14,10 +14,17 @@ interface NavigationProps {
 }
 
 export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const isLoggedIn = propIsLoggedIn !== undefined ? propIsLoggedIn : isAuthenticated;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const getInitials = () => {
+    if (!user?.firstName && !user?.lastName) return "U";
+    const first = user?.firstName?.[0] || "";
+    const last = user?.lastName?.[0] || "";
+    return (first + last).toUpperCase();
+  };
 
   const navLinks = [
     { label: "Stations", href: "/find-stations" },
@@ -64,15 +71,18 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
             </button>
 
             {isLoggedIn ? (
-              <div className="relative">
+              <div className="relative hidden md:block">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="hover-elevate rounded-full p-1"
+                  className="hover-elevate rounded-full p-1 transition-transform"
                   data-testid="button-profile"
+                  title={user ? `${user.firstName} ${user.lastName}` : "Profile"}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="bg-lime-400 text-black text-xs font-bold">J</AvatarFallback>
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user?.avatarUrl || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-lime-400 to-lime-500 text-black text-xs font-bold">
+                      {getInitials()}
+                    </AvatarFallback>
                   </Avatar>
                 </button>
                 <AnimatePresence>
@@ -82,23 +92,13 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
                 </AnimatePresence>
               </div>
             ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  onClick={() => window.location.href = "/api/login"}
-                  className="hidden md:inline-flex rounded-full"
-                  data-testid="button-login"
-                >
-                  Login
-                </Button>
-                <Button
-                  onClick={() => window.location.href = "/api/login"}
-                  className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
-                  data-testid="button-get-started"
-                >
-                  Get Started
-                </Button>
-              </>
+              <Button
+                onClick={() => window.location.href = "/api/login"}
+                className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
+                data-testid="button-login"
+              >
+                Login
+              </Button>
             )}
           </div>
         </div>
