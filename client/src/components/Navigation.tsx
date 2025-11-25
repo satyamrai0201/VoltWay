@@ -71,7 +71,7 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
             </button>
 
             {isLoggedIn ? (
-              <div className="relative hidden md:block">
+              <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="hover-elevate rounded-full p-1 transition-transform"
@@ -93,8 +93,11 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
               </div>
             ) : (
               <Button
-                onClick={() => window.location.href = "/api/login"}
+                onClick={() => {
+                  window.location.href = "/api/login";
+                }}
                 className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
+                size="lg"
                 data-testid="button-login"
               >
                 Login
