@@ -155,11 +155,15 @@ export default function FindStations() {
     return true;
   });
 
+  // Show popular stations (first 15) when no filters are applied
+  const hasActiveFilters = searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly;
+  const displayedStations = hasActiveFilters ? filteredStations : (stations || []).slice(0, 15).filter(hasValidCoordinates);
+
   // Determine map center based on search
   const mapCenter: [number, number] = searchCity 
     ? cityCoordinates[searchCity.toLowerCase()] || [28.4595, 77.0266]
-    : filteredStations.length > 0 
-      ? [parseCoordinate(filteredStations[0].latitude), parseCoordinate(filteredStations[0].longitude)]
+    : displayedStations.length > 0 
+      ? [parseCoordinate(displayedStations[0].latitude), parseCoordinate(displayedStations[0].longitude)]
       : [28.4595, 77.0266]; // Default to Gurgaon
 
   return (
@@ -270,9 +274,9 @@ export default function FindStations() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">
-                {filteredStations.length} Stations
+                {hasActiveFilters ? `${filteredStations.length} Results` : "Popular Stations"}
               </h2>
-              {(searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly) && (
+              {hasActiveFilters && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -301,7 +305,7 @@ export default function FindStations() {
               </>
             ) : (
               <>
-                {filteredStations.map((station) => (
+                {displayedStations.map((station) => (
                   <Link key={station.id} href={`/stations/${station.id}`}>
                     <Card className="hover-elevate cursor-pointer" data-testid={`card-station-${station.id}`}>
                       <CardContent className="p-4 space-y-3">
@@ -368,13 +372,13 @@ export default function FindStations() {
         </div>
 
         <div className="flex-1">
-          {filteredStations.length > 0 ? (
+          {displayedStations.length > 0 ? (
             <MapContainer center={mapCenter} zoom={searchCity ? 12 : 11} className="h-full w-full">
               <TileLayer 
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
-              {filteredStations.map((station) => (
+              {displayedStations.map((station) => (
                 <Marker
                   key={station.id}
                   position={[parseCoordinate(station.latitude), parseCoordinate(station.longitude)]}

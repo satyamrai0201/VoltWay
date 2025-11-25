@@ -146,7 +146,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/stations/:id/reviews", async (req, res) => {
     try {
       const reviews = await storage.getReviewsByStation(req.params.id);
-      res.json(reviews);
+      // Fetch user info for each review
+      const reviewsWithUsers = await Promise.all(
+        reviews.map(async (review) => {
+          const user = await storage.getUser(review.userId);
+          return {
+            ...review,
+            userName: user ? `${user.firstName} ${user.lastName}` : "Anonymous"
+          };
+        })
+      );
+      res.json(reviewsWithUsers);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch reviews" });
     }

@@ -71,7 +71,7 @@ export default function StationDetail() {
     queryKey: ["/api/stations", stationId],
   });
 
-  const { data: reviews } = useQuery<Review[]>({
+  const { data: reviews } = useQuery<(Review & { userName?: string })[]>({
     queryKey: ["/api/stations", stationId, "reviews"],
   });
 
@@ -877,7 +877,7 @@ export default function StationDetail() {
                   <DialogHeader>
                     <DialogTitle>Write a Review</DialogTitle>
                     <DialogDescription>
-                      Share your experience at {station?.name}
+                      {user ? `Sharing as ${user.firstName} ${user.lastName}` : "Share your experience at " + (station?.name || "this station")}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -946,14 +946,19 @@ export default function StationDetail() {
               {reviews && reviews.length > 0 ? (
                 reviews.map((review) => (
                   <div key={review.id} className="space-y-2 pb-4 border-b last:border-b-0">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">
-                        <Star size={12} className="mr-1 fill-primary text-primary" />
-                        {review.rating}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {format(new Date(review.createdAt), "MMM dd, yyyy")}
-                      </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">
+                          <Star size={12} className="mr-1 fill-primary text-primary" />
+                          {review.rating}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {format(new Date(review.createdAt), "MMM dd, yyyy")}
+                        </span>
+                      </div>
+                      {review.userName && (
+                        <span className="text-sm font-medium text-foreground">{review.userName}</span>
+                      )}
                     </div>
                     {review.comment && (
                       <p className="text-muted-foreground">{review.comment}</p>
