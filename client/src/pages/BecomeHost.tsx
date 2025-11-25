@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { MapPin, Zap, DollarSign, Image as ImageIcon, Home, Loader2, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,9 +29,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { insertStationSchema } from "@shared/schema";
+import { insertStationSchema, type Station } from "@shared/schema";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useLocation, useRoute } from "wouter";
 
 interface AddressSuggestion {
   address: string;
@@ -55,13 +55,9 @@ const formSchema = insertStationSchema.extend({
   isHomeStation: z.boolean().default(false),
 });
 
-// RequiredBadge component for marking required/optional fields
-function RequiredBadge({ required }: { required: boolean }) {
-  return (
-    <Badge variant={required ? "destructive" : "outline"} className="ml-2 text-xs">
-      {required ? "Required" : "Optional"}
-    </Badge>
-  );
+// RequiredField component - simple red asterisk
+function RequiredField() {
+  return <span className="text-red-600 font-bold">*</span>;
 }
 
 export default function BecomeHost() {
@@ -74,6 +70,16 @@ export default function BecomeHost() {
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+
+  // Check if editing (from URL params)
+  const [isEditRoute] = useRoute("/host/edit/:id");
+  const editStationId = isEditRoute ? location.pathname.split("/").pop() : null;
+
+  // Fetch station if editing
+  const { data: existingStation, isLoading: isLoadingStation } = useQuery<Station>({
+    queryKey: [`/api/stations/${editStationId}`],
+    enabled: !!editStationId,
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,6 +101,30 @@ export default function BecomeHost() {
       isHomeStation: false,
     },
   });
+
+  // Populate form with existing station data when editing
+  useEffect(() => {
+    if (existingStation) {
+      form.reset({
+        hostId: existingStation.hostId,
+        name: existingStation.name,
+        description: existingStation.description,
+        address: existingStation.address,
+        city: existingStation.city,
+        state: existingStation.state,
+        zipCode: existingStation.zipCode,
+        latitude: existingStation.latitude,
+        longitude: existingStation.longitude,
+        imageUrl: existingStation.imageUrl || "",
+        chargerType: existingStation.chargerType,
+        powerOutput: existingStation.powerOutput,
+        pricePerHour: existingStation.pricePerHour,
+        availableSlots: existingStation.availableSlots,
+        isHomeStation: existingStation.isHomeStation,
+      });
+      setAmenities(existingStation.amenities || []);
+    }
+  }, [existingStation, form]);
 
   const addressValue = form.watch("address");
   const zipCodeValue = form.watch("zipCode");
@@ -119,7 +149,7 @@ export default function BecomeHost() {
           const address = item.address || {};
           return {
             address: item.display_name.split(',').slice(0, 2).join(', '),
-            city: address.city || address.town || address.county || "",
+            city: address.city || address.town || address.county || address.municipality || "",
             state: address.state || "",
             zipCode: address.postcode || "",
             latitude: item.lat,
@@ -141,7 +171,7 @@ export default function BecomeHost() {
     return () => clearTimeout(timer);
   }, [addressValue]);
 
-  // Fetch location details from pincode
+  // Improved: Fetch location details from pincode using reverse geocoding
   useEffect(() => {
     if (zipCodeValue.length < 5) {
       return;
@@ -150,8 +180,8 @@ export default function BecomeHost() {
     const fetchLocationFromPincode = async () => {
       try {
         setIsLoadingCoordinates(true);
-        // Use Nominatim reverse geocoding to find location from coordinates
-        // For Indian postcodes, we'll search for the pincode directly
+        
+        // Search for the pincode directly
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(zipCodeValue)}%20India&countrycodes=in&format=json&limit=1&addressdetails=1`
         );
@@ -161,8 +191,11 @@ export default function BecomeHost() {
           const item = data[0];
           const address = item.address || {};
           
-          form.setValue("city", address.city || address.town || address.county || form.getValues("city"));
-          form.setValue("state", address.state || form.getValues("state"));
+          const city = address.city || address.town || address.county || address.municipality || form.getValues("city");
+          const state = address.state || form.getValues("state");
+          
+          if (city) form.setValue("city", city);
+          if (state) form.setValue("state", state);
           form.setValue("latitude", item.lat);
           form.setValue("longitude", item.lon);
         }
@@ -187,29 +220,39 @@ export default function BecomeHost() {
     setShowAddressSuggestions(false);
   };
 
-  const createStation = useMutation({
+  const createOrUpdateStation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/stations", {
-        method: "POST",
+      const url = editStationId ? `/api/stations/${editStationId}` : "/api/stations";
+      const method = editStationId ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...data, amenities }),
       });
-      if (!response.ok) throw new Error("Failed to create station");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to save station");
+      }
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate all relevant queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/stations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/host", user?.id, "stations"] });
+      if (editStationId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/stations/${editStationId}`] });
+      }
       toast({
-        title: "Station created successfully!",
-        description: "Your charging station has been listed and is now visible to users.",
+        title: editStationId ? "Station updated!" : "Station created!",
+        description: editStationId 
+          ? "Your charging station has been updated." 
+          : "Your charging station has been listed and is now visible to users.",
       });
       setLocation("/host/dashboard");
     },
     onError: (error: any) => {
       toast({
-        title: "Failed to create station",
+        title: "Failed to save station",
         description: error.message || "Please check all fields and try again.",
         variant: "destructive",
       });
@@ -225,7 +268,7 @@ export default function BecomeHost() {
       });
       return;
     }
-    createStation.mutate(data);
+    createOrUpdateStation.mutate(data);
   };
 
   const addAmenity = () => {
@@ -239,6 +282,15 @@ export default function BecomeHost() {
     setAmenities(amenities.filter((a) => a !== amenity));
   };
 
+  if (isLoadingStation) {
+    return (
+      <div className="min-h-screen bg-background pt-20 flex items-center justify-center">
+        <Navigation />
+        <Loader2 className="animate-spin" size={40} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pt-20">
       <Navigation />
@@ -246,10 +298,12 @@ export default function BecomeHost() {
         <div className="space-y-8">
           <div className="space-y-4">
             <h1 className="text-6xl font-bold" data-testid="heading-become-host">
-              Become a Host
+              {editStationId ? "Edit Station" : "Become a Host"}
             </h1>
             <p className="text-xl text-muted-foreground">
-              List your charging station and start earning. Fields marked as Required must be filled.
+              {editStationId 
+                ? "Update your charging station details." 
+                : "List your charging station and start earning. Fields marked with "}<RequiredField />{editStationId ? "" : " are required."}
             </p>
           </div>
 
@@ -267,7 +321,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           Station Name
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -288,7 +342,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           Description
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <FormControl>
                           <Textarea
@@ -308,10 +362,7 @@ export default function BecomeHost() {
                     name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>
-                          Image URL
-                          <RequiredBadge required={false} />
-                        </FormLabel>
+                        <FormLabel>Image URL (Optional)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -344,7 +395,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           Address
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
@@ -380,7 +431,7 @@ export default function BecomeHost() {
                         </FormControl>
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
-                          💡 Type to search for addresses. Select from suggestions to auto-fill coordinates.
+                          💡 Type to search. Select suggestion to auto-fill address, city, state, zipcode & coordinates.
                         </p>
                       </FormItem>
                     )}
@@ -394,7 +445,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             City
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                           </FormLabel>
                           <FormControl>
                             <Input placeholder="Bangalore" {...field} data-testid="input-city" />
@@ -411,7 +462,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             State
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                           </FormLabel>
                           <FormControl>
                             <Input placeholder="Karnataka" {...field} data-testid="input-state" />
@@ -429,7 +480,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           ZIP/Postal Code
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
@@ -444,7 +495,7 @@ export default function BecomeHost() {
                         </FormControl>
                         <FormMessage />
                         <p className="text-xs text-muted-foreground mt-2">
-                          💡 Enter zip code to auto-fill city, state, and coordinates.
+                          💡 Enter pincode to auto-fill city, state & coordinates.
                         </p>
                       </FormItem>
                     )}
@@ -458,7 +509,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             Latitude
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                             {field.value && !isLoadingCoordinates && (
                               <Check size={14} className="inline ml-2 text-green-600" />
                             )}
@@ -468,7 +519,6 @@ export default function BecomeHost() {
                               placeholder="12.9716" 
                               {...field} 
                               data-testid="input-latitude"
-                              readOnly={field.value ? false : true}
                               className="bg-muted"
                             />
                           </FormControl>
@@ -484,7 +534,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             Longitude
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                             {field.value && !isLoadingCoordinates && (
                               <Check size={14} className="inline ml-2 text-green-600" />
                             )}
@@ -494,7 +544,6 @@ export default function BecomeHost() {
                               placeholder="77.5946" 
                               {...field} 
                               data-testid="input-longitude"
-                              readOnly={field.value ? false : true}
                               className="bg-muted"
                             />
                           </FormControl>
@@ -504,7 +553,7 @@ export default function BecomeHost() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    📍 Coordinates are automatically fetched from the address or zip code.
+                    📍 Auto-fetched from address or pincode.
                   </p>
                 </CardContent>
               </Card>
@@ -521,7 +570,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           Charger Type
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
@@ -548,7 +597,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             Power Output (kW)
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                           </FormLabel>
                           <FormControl>
                             <div className="relative">
@@ -576,7 +625,7 @@ export default function BecomeHost() {
                         <FormItem>
                           <FormLabel>
                             Available Slots
-                            <RequiredBadge required={true} />
+                            <RequiredField />
                           </FormLabel>
                           <FormControl>
                             <Input
@@ -601,7 +650,7 @@ export default function BecomeHost() {
                       <FormItem>
                         <FormLabel>
                           Price per Hour (₹)
-                          <RequiredBadge required={true} />
+                          <RequiredField />
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
@@ -625,7 +674,7 @@ export default function BecomeHost() {
                   <div className="space-y-3">
                     <Label>
                       Amenities
-                      <RequiredBadge required={true} />
+                      <RequiredField />
                     </Label>
                     <div className="flex gap-2">
                       <Input
@@ -679,10 +728,12 @@ export default function BecomeHost() {
                 type="submit"
                 size="lg"
                 className="w-full bg-lime-500 hover:bg-lime-600 text-black font-bold"
-                disabled={createStation.isPending || isLoadingCoordinates}
+                disabled={createOrUpdateStation.isPending || isLoadingCoordinates}
                 data-testid="button-submit"
               >
-                {createStation.isPending ? "Creating Station..." : "List Station & Go Live"}
+                {createOrUpdateStation.isPending 
+                  ? (editStationId ? "Updating..." : "Creating...") 
+                  : (editStationId ? "Update Station" : "List Station & Go Live")}
               </Button>
             </form>
           </Form>
