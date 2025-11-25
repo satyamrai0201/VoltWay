@@ -45,6 +45,10 @@ export default function LoginPrompt() {
             Login to VoltWay
           </Button>
         </div>
+
+        <p className="text-sm text-muted-foreground mt-8">
+          Demo: Click login to access the platform with sample data
+        </p>
       </div>
     </div>
   );

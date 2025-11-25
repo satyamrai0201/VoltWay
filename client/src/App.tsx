@@ -28,22 +28,21 @@ function Router() {
     );
   }
 
-  // Show FindStations for all users (authenticated and unauthenticated)
+  if (!isAuthenticated) {
+    return <LoginPrompt />;
+  }
+
   return (
     <Switch>
-      <Route path="/" component={FindStations} />
+      <Route path="/" component={Home} />
       <Route path="/find-stations" component={FindStations} />
       <Route path="/stations/:id" component={StationDetail} />
-      {isAuthenticated && (
-        <>
-          <Route path="/bookings" component={MyBookings} />
-          <Route path="/bookings/:id" component={BookingDetail} />
-          <Route path="/host/dashboard" component={HostDashboard} />
-          <Route path="/host/new" component={BecomeHost} />
-          <Route path="/host/edit/:id" component={BecomeHost} />
-          <Route path="/profile" component={Profile} />
-        </>
-      )}
+      <Route path="/bookings" component={MyBookings} />
+      <Route path="/bookings/:id" component={BookingDetail} />
+      <Route path="/host/dashboard" component={HostDashboard} />
+      <Route path="/host/new" component={BecomeHost} />
+      <Route path="/host/edit/:id" component={BecomeHost} />
+      <Route path="/profile" component={Profile} />
       <Route path="/help" component={Help} />
       <Route path="/contact" component={Contact} />
       <Route component={NotFound} />

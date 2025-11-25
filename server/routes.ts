@@ -34,13 +34,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check session first, then user object
       const userId = (req.session as any)?.userId || req.user?.id;
       if (!userId) {
-        // Return null for unauthenticated users (don't fail the request)
-        return res.json(null);
+        return res.status(401).json({ error: "Not authenticated" });
       }
       const user = await storage.getUser(userId);
       if (!user) {
-        // Return null if user not found instead of 404
-        return res.json(null);
+        return res.status(404).json({ error: "User not found" });
       }
       res.json(user);
     } catch (error) {
