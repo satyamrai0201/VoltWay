@@ -39,6 +39,7 @@ function Router() {
       <Route path="/bookings" component={MyBookings} />
       <Route path="/host/dashboard" component={HostDashboard} />
       <Route path="/host/new" component={BecomeHost} />
+      <Route path="/host/edit/:id" component={BecomeHost} />
       <Route path="/profile" component={Profile} />
       <Route path="/help" component={Help} />
       <Route path="/contact" component={Contact} />

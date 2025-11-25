@@ -573,6 +573,7 @@ export class MemStorage implements IStorage {
       amenities: insertStation.amenities ?? null,
       id,
       isActive: insertStation.isActive ?? true,
+      isHomeStation: insertStation.isHomeStation ?? false,
       rating: null,
       totalReviews: 0,
       createdAt: new Date(),
