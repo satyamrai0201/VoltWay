@@ -45,6 +45,7 @@ export default function LoginPrompt() {
             Login to VoltWay
           </Button>
         </div>
+      </div>
     </div>
   );
 }
