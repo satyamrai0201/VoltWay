@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useRoute, useLocation } from "wouter";
 import { format, addDays } from "date-fns";
-import { MapPin, Zap, Clock, Star, Calendar, ArrowLeft, Check, CreditCard, Lock } from "lucide-react";
+import { MapPin, Zap, Clock, Star, Calendar, ArrowLeft, Check, CreditCard, Lock, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,7 @@ export default function StationDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings/user", user?.id] });
       setIsProcessing(false);
       
       // Close dialog immediately
@@ -359,17 +360,25 @@ export default function StationDetail() {
               <h1 className="text-5xl font-bold" data-testid="heading-station-name">
                 {station.name}
               </h1>
-              {station.rating && (
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {station.isHomeStation && (
+                  <Badge className="bg-lime-100 dark:bg-lime-900 text-lime-900 dark:text-lime-100 border border-lime-300 dark:border-lime-700">
+                    <Home size={14} className="mr-1" />
+                    Home Station
+                  </Badge>
+                )}
+                {station.rating && (
                   <Badge variant="secondary" className="text-lg px-3 py-1">
                     <Star size={16} className="mr-1 fill-primary text-primary" />
                     {station.rating}
                   </Badge>
+                )}
+                {station.rating && (
                   <span className="text-muted-foreground">
                     ({station.totalReviews} reviews)
                   </span>
-                </div>
-              )}
+                )}
+              </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <MapPin size={20} />
                 <span className="text-lg">
