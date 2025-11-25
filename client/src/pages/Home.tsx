@@ -166,7 +166,7 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
+      <Footer onHowItWorksClick={() => setShowVideoModal(true)} />
 
       {/* How It Works Video Modal */}
       <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>

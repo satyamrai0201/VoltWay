@@ -1,14 +1,18 @@
 import { Link } from "wouter";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
-export default function Footer() {
+interface FooterProps {
+  onHowItWorksClick?: () => void;
+}
+
+export default function Footer({ onHowItWorksClick }: FooterProps) {
   const footerSections = [
     {
       title: "Product",
       links: [
         { id: "find-stations", label: "Find Stations", href: "/find-stations" },
         { id: "my-bookings", label: "My Bookings", href: "/bookings" },
-        { id: "how-it-works", label: "How It Works", href: "/" },
+        { id: "how-it-works", label: "How It Works", href: null, onClick: onHowItWorksClick },
       ],
     },
     {
@@ -50,13 +54,23 @@ export default function Footer() {
               <ul className="space-y-3">
                 {section.links.map((link: any) => (
                   <li key={link.id}>
-                    <Link
-                      href={link.href}
-                      className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-                      data-testid={`link-footer-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
-                    >
-                      {link.label}
-                    </Link>
+                    {link.onClick ? (
+                      <button
+                        onClick={link.onClick}
+                        className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        data-testid={`link-footer-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        {link.label}
+                      </button>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        data-testid={`link-footer-${link.label.toLowerCase().replace(/\s+/g, "-")}`}
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
