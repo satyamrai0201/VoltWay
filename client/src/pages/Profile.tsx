@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { User, Mail, Phone, Edit, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,74 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 
 export default function Profile() {
   const { toast } = useToast();
-  const { user, isLoading } = useAuth();
-  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("John");
+  const [lastName, setLastName] = useState("Doe");
+  const [email, setEmail] = useState("john.doe@example.com");
+  const [phone, setPhone] = useState("+91 98765 43210");
 
-  // Initialize form with user data
-  useEffect(() => {
-    if (user) {
-      setFirstName(user.firstName || "");
-      setLastName(user.lastName || "");
-      setEmail(user.email || "");
-      setPhone(user.phoneNumber || "");
-    }
-  }, [user]);
-
-  // Update profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: { firstName: string; lastName: string; phoneNumber: string }) => {
-      return apiRequest("PATCH", "/api/auth/user", data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      setIsEditing(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update profile. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSave = async () => {
-    updateProfileMutation.mutate({
-      firstName,
-      lastName,
-      phoneNumber: phone,
+  const handleSave = () => {
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been updated successfully.",
     });
+    setIsEditing(false);
   };
-
-  const getInitials = () => {
-    if (!firstName && !lastName) return "U";
-    const first = firstName?.[0] || "";
-    const last = lastName?.[0] || "";
-    return (first + last).toUpperCase();
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -95,16 +43,10 @@ export default function Profile() {
               <Button
                 variant={isEditing ? "default" : "outline"}
                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
-                disabled={updateProfileMutation.isPending}
                 className="gap-2"
                 data-testid={isEditing ? "button-save" : "button-edit"}
               >
-                {updateProfileMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
-                    Saving...
-                  </>
-                ) : isEditing ? (
+                {isEditing ? (
                   <>
                     <Save size={18} />
                     Save
@@ -121,8 +63,8 @@ export default function Profile() {
               <div className="flex items-center gap-6">
                 <Avatar className="w-24 h-24">
                   <AvatarImage src="" />
-                  <AvatarFallback className="text-3xl bg-gradient-to-br from-lime-400 to-lime-500 text-black font-bold">
-                    {getInitials()}
+                  <AvatarFallback className="text-3xl">
+                    {firstName[0]}{lastName[0]}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -171,7 +113,8 @@ export default function Profile() {
                       id="email"
                       type="email"
                       value={email}
-                      disabled
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={!isEditing}
                       className="pl-10"
                       data-testid="input-email"
                     />
@@ -209,15 +152,13 @@ export default function Profile() {
                     Start hosting charging stations to earn revenue
                   </p>
                 </div>
-                <Badge variant={user?.isHost ? "default" : "outline"} data-testid="badge-host-status">
-                  {user?.isHost ? "Host" : "Not a Host"}
+                <Badge variant="outline" data-testid="badge-host-status">
+                  Not a Host
                 </Badge>
               </div>
-              {!user?.isHost && (
-                <Button variant="outline" className="w-full" data-testid="button-become-host">
-                  Become a Host
-                </Button>
-              )}
+              <Button variant="outline" className="w-full" data-testid="button-become-host">
+                Become a Host
+              </Button>
             </CardContent>
           </Card>
 

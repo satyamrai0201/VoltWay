@@ -6,8 +6,6 @@ export interface AuthUser {
   email: string;
   firstName: string | null;
   lastName: string | null;
-  avatarUrl: string | null;
-  phoneNumber: string | null;
   isHost: boolean;
 }
 
