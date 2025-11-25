@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import FindStations from "@/pages/FindStations";
 import StationDetail from "@/pages/StationDetail";
 import MyBookings from "@/pages/MyBookings";
+import BookingDetail from "@/pages/BookingDetail";
 import HostDashboard from "@/pages/HostDashboard";
 import BecomeHost from "@/pages/BecomeHost";
 import Profile from "@/pages/Profile";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/find-stations" component={FindStations} />
       <Route path="/stations/:id" component={StationDetail} />
       <Route path="/bookings" component={MyBookings} />
+      <Route path="/bookings/:id" component={BookingDetail} />
       <Route path="/host/dashboard" component={HostDashboard} />
       <Route path="/host/new" component={BecomeHost} />
       <Route path="/host/edit/:id" component={BecomeHost} />
