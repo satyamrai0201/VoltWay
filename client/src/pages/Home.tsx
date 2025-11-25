@@ -1,229 +1,43 @@
 import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
-import StationCard from "@/components/StationCard";
-import StationDetailModal from "@/components/StationDetailModal";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Zap, Star, MapPin } from "lucide-react";
+import type { Station } from "@shared/schema";
 import neonimagePath from "@assets/generated_images/neon_ev_charging_station_night.png";
 import modernImagePath from "@assets/generated_images/modern_ev_charging_hub_daylight.png";
 import futuristicImagePath from "@assets/generated_images/futuristic_lime_green_charging.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const [selectedStation, setSelectedStation] = useState<any>(null);
 
-  // Full 15 demo stations dataset
-  const allDemoStations = [
-    {
-      name: "DLF Cyber Hub Station",
-      address: "DLF Cyber City, Sector 24, Gurugram, Haryana",
-      distance: "2.3 km",
-      connectorTypes: ["CCS", "CHAdeMO", "Type 2"],
-      pricePerKwh: 12,
-      availability: "available" as const,
-      rating: 4.8,
-      reviews: 156,
-      hostName: "Rajesh Kumar",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Restroom", "Cafe", "Parking"],
-    },
-    {
-      name: "MG Road Charging Hub",
-      address: "MG Road, Sector 28, Gurugram, Haryana",
-      distance: "4.1 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 15,
-      availability: "busy" as const,
-      rating: 4.5,
-      reviews: 89,
-      hostName: "Priya Singh",
-      hours: "6 AM - 10 PM",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      name: "Golf Course Station",
-      address: "Golf Course Road, Sector 54, Gurugram",
-      distance: "5.8 km",
-      connectorTypes: ["CCS", "CHAdeMO"],
-      pricePerKwh: 10,
-      availability: "available" as const,
-      rating: 4.9,
-      reviews: 203,
-      hostName: "Amit Sharma",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Restroom", "Shopping", "Parking"],
-    },
-    {
-      name: "Hitech City Station",
-      address: "Hitech City, Hyderabad, Telangana",
-      distance: "3.2 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 11,
-      availability: "available" as const,
-      rating: 4.7,
-      reviews: 142,
-      hostName: "Amit Patel",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Restroom", "Cafe"],
-    },
-    {
-      name: "Phoenix Station",
-      address: "Phoenix Market City, Chennai, Tamil Nadu",
-      distance: "6.5 km",
-      connectorTypes: ["Type 2", "CHAdeMO"],
-      pricePerKwh: 13,
-      availability: "busy" as const,
-      rating: 4.4,
-      reviews: 78,
-      hostName: "Sneha Gupta",
-      hours: "8 AM - 11 PM",
-      amenities: ["WiFi", "Shopping", "Parking"],
-    },
-    {
-      name: "Whitefield Hub",
-      address: "Whitefield, Bangalore, Karnataka",
-      distance: "1.8 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 9,
-      availability: "available" as const,
-      rating: 4.9,
-      reviews: 267,
-      hostName: "Arjun Singh",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Restroom", "Cafe", "Parking"],
-    },
-    {
-      name: "T-Hub Charging Point",
-      address: "T-Hub, Hyderabad, Telangana",
-      distance: "4.7 km",
-      connectorTypes: ["CCS"],
-      pricePerKwh: 14,
-      availability: "available" as const,
-      rating: 4.6,
-      reviews: 124,
-      hostName: "Ananya Desai",
-      hours: "9 AM - 9 PM",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      name: "Marina Station",
-      address: "Marina Beach Road, Chennai, Tamil Nadu",
-      distance: "7.2 km",
-      connectorTypes: ["Type 2"],
-      pricePerKwh: 12,
-      availability: "busy" as const,
-      rating: 4.3,
-      reviews: 95,
-      hostName: "Vikram Reddy",
-      hours: "7 AM - 10 PM",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      name: "Indiranagar Hub",
-      address: "Indiranagar, Bangalore, Karnataka",
-      distance: "3.5 km",
-      connectorTypes: ["CCS", "CHAdeMO", "Type 2"],
-      pricePerKwh: 10,
-      availability: "available" as const,
-      rating: 4.8,
-      reviews: 198,
-      hostName: "Meera Nair",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Restroom", "Cafe", "Parking"],
-    },
-    {
-      name: "Banjara Hills Station",
-      address: "Banjara Hills, Hyderabad, Telangana",
-      distance: "5.1 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 13,
-      availability: "available" as const,
-      rating: 4.5,
-      reviews: 87,
-      hostName: "Rohan Chatterjee",
-      hours: "6 AM - 11 PM",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      name: "Jubilee Hills Charger",
-      address: "Jubilee Hills, Hyderabad, Telangana",
-      distance: "6.8 km",
-      connectorTypes: ["Type 2", "CHAdeMO"],
-      pricePerKwh: 15,
-      availability: "offline" as const,
-      rating: 4.2,
-      reviews: 56,
-      hostName: "Rajesh Kumar",
-      hours: "Closed",
-      amenities: ["Parking"],
-    },
-    {
-      name: "Koramangala Point",
-      address: "Koramangala, Bangalore, Karnataka",
-      distance: "4.2 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 11,
-      availability: "available" as const,
-      rating: 4.7,
-      reviews: 167,
-      hostName: "Priya Sharma",
-      hours: "7 AM - 10 PM",
-      amenities: ["WiFi", "Restroom", "Cafe"],
-    },
-    {
-      name: "Sector 52 Hub",
-      address: "Sector 52, Gurugram, Haryana",
-      distance: "3.9 km",
-      connectorTypes: ["CCS"],
-      pricePerKwh: 12,
-      availability: "available" as const,
-      rating: 4.6,
-      reviews: 134,
-      hostName: "Amit Patel",
-      hours: "Open 24/7",
-      amenities: ["WiFi", "Parking"],
-    },
-    {
-      name: "Aerocity Station",
-      address: "Aerocity, New Delhi, Delhi",
-      distance: "8.5 km",
-      connectorTypes: ["CCS", "CHAdeMO", "Type 2"],
-      pricePerKwh: 16,
-      availability: "busy" as const,
-      rating: 4.4,
-      reviews: 103,
-      hostName: "Sneha Gupta",
-      hours: "6 AM - Midnight",
-      amenities: ["WiFi", "Restroom", "Cafe", "Parking"],
-    },
-    {
-      name: "Connaught Place Hub",
-      address: "Connaught Place, New Delhi, Delhi",
-      distance: "7.5 km",
-      connectorTypes: ["CCS", "Type 2"],
-      pricePerKwh: 14,
-      availability: "available" as const,
-      rating: 4.5,
-      reviews: 112,
-      hostName: "Arjun Singh",
-      hours: "8 AM - 10 PM",
-      amenities: ["WiFi", "Parking"],
-    },
-  ];
+  // Fetch all stations from backend
+  const { data: allStations = [] } = useQuery<Station[]>({
+    queryKey: ["/api/stations"],
+  });
 
-  // Get 3 popular stations from Gurgaon with images
+  // Get 3 Gurgaon stations with images
   const popularStations = useMemo(() => {
-    const stationImages = [neonimagePath, modernImagePath, futuristicImagePath];
-    // Select stations at indices 0, 2, 12 (all Gurgaon stations) from the 15 dataset
-    const selectedIndices = [0, 2, 12];
-    return selectedIndices.map((idx, imageIdx) => ({
-      ...allDemoStations[idx],
-      imageUrl: stationImages[imageIdx],
+    const gurgaonStations = allStations.filter(
+      (station) => station.city.toLowerCase() === "gurgaon"
+    );
+    
+    // Use first 3 Gurgaon stations, or less if not enough
+    const selectedStations = gurgaonStations.slice(0, 3);
+    const images = [neonimagePath, modernImagePath, futuristicImagePath];
+    
+    return selectedStations.map((station, idx) => ({
+      ...station,
+      imageUrl: images[idx] || station.imageUrl,
     }));
-  }, []);
+  }, [allStations]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -236,6 +50,7 @@ export default function Home() {
 
       <FeaturesSection />
 
+      {/* Popular Stations Section */}
       <section className="py-24 px-6" data-testid="section-popular-stations">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -247,43 +62,108 @@ export default function Home() {
           >
             <h2 className="text-5xl md:text-6xl font-bold mb-4">Popular Stations</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover highly-rated charging stations in your area
+              Discover highly-rated charging stations in Gurgaon
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {popularStations.map((station, index) => (
-              <StationCard
-                key={index}
-                {...station}
-                onBookClick={() => {
-                  console.log("Book station:", station.name);
-                  setLocation("/find-stations");
-                }}
-                onViewDetails={() => setSelectedStation(station)}
-              />
+            {popularStations.map((station) => (
+              <motion.div
+                key={station.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card className="h-full rounded-3xl overflow-hidden border border-card-border shadow-md hover-elevate">
+                  {/* Station Image */}
+                  <div className="aspect-video relative bg-muted overflow-hidden">
+                    {station.imageUrl ? (
+                      <img
+                        src={station.imageUrl}
+                        alt={station.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Zap size={48} className="text-muted-foreground" />
+                      </div>
+                    )}
+                    {/* Availability Badge */}
+                    <div className="absolute top-4 right-4">
+                      <Badge className="gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-green-500" />
+                        Available
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Station Details */}
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2" data-testid="text-station-name">
+                        {station.name}
+                      </h3>
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin size={16} className="mt-0.5 flex-shrink-0" />
+                        <span>{station.address}</span>
+                      </div>
+                    </div>
+
+                    {/* Price and Rating */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 font-semibold text-lg">
+                        <span className="text-primary">₹{station.pricePerHour}</span>
+                        <span className="text-sm font-normal text-muted-foreground">/hr</span>
+                      </div>
+                      {station.rating && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Star size={12} className="fill-primary text-primary" />
+                          {station.rating}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Charger Type Badge */}
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {station.chargerType}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {station.powerOutput} kW
+                      </Badge>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Link href={`/stations/${station.id}`}>
+                        <Button
+                          variant="outline"
+                          className="flex-1 rounded-full"
+                          data-testid="button-view-details"
+                        >
+                          View Details
+                        </Button>
+                      </Link>
+                      <Link href={`/stations/${station.id}`}>
+                        <Button
+                          className="flex-1 rounded-full"
+                          data-testid="button-book-now"
+                        >
+                          Book Now
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       <Footer />
-
-      {selectedStation && (
-        <StationDetailModal
-          isOpen={!!selectedStation}
-          onClose={() => setSelectedStation(null)}
-          station={selectedStation}
-          onBookNow={() => {
-            setSelectedStation(null);
-            setLocation("/find-stations");
-          }}
-          onSchedule={() => {
-            setSelectedStation(null);
-            setLocation("/find-stations");
-          }}
-        />
-      )}
     </div>
   );
 }
