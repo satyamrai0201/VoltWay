@@ -214,11 +214,11 @@ export default function Home() {
     },
   ];
 
-  // Get 3 random popular stations with images
+  // Get 3 popular stations from Gurgaon with images
   const popularStations = useMemo(() => {
     const stationImages = [neonimagePath, modernImagePath, futuristicImagePath];
-    // Select stations at indices 0, 2, 5 for variety from the 15 dataset
-    const selectedIndices = [0, 2, 5];
+    // Select stations at indices 0, 2, 12 (all Gurgaon stations) from the 15 dataset
+    const selectedIndices = [0, 2, 12];
     return selectedIndices.map((idx, imageIdx) => ({
       ...allDemoStations[idx],
       imageUrl: stationImages[imageIdx],
