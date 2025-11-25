@@ -9,6 +9,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { Zap, Star, MapPin } from "lucide-react";
 import type { Station } from "@shared/schema";
 import neonimagePath from "@assets/generated_images/neon_ev_charging_station_night.png";
@@ -17,6 +19,7 @@ import futuristicImagePath from "@assets/generated_images/futuristic_lime_green_
 
 export default function Home() {
   const [, setLocation] = useLocation();
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   // Fetch all stations from backend
   const { data: allStations = [] } = useQuery<Station[]>({
@@ -44,7 +47,7 @@ export default function Home() {
       <Navigation />
 
       <HeroSection
-        onHowItWorksClick={() => console.log("How it works clicked")}
+        onHowItWorksClick={() => setShowVideoModal(true)}
         onGetStartedClick={() => setLocation("/find-stations")}
       />
 
@@ -164,6 +167,31 @@ export default function Home() {
       </section>
 
       <Footer />
+
+      {/* How It Works Video Modal */}
+      <Dialog open={showVideoModal} onOpenChange={setShowVideoModal}>
+        <DialogContent className="w-full max-w-4xl aspect-video p-0 border-0 rounded-3xl overflow-hidden bg-black">
+          <div className="relative w-full h-full">
+            <iframe
+              width="100%"
+              height="100%"
+              src="https://www.youtube.com/embed/EpznbHcGe3I?si=pPqzQtGXVm2YS44z&autoplay=1"
+              title="VoltWay - How it Works"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="border-0"
+              data-testid="video-how-it-works"
+            />
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
+              data-testid="button-close-video"
+            >
+              <X size={24} className="text-white" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
