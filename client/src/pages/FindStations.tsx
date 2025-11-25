@@ -155,9 +155,15 @@ export default function FindStations() {
     return true;
   });
 
-  // Show popular stations (first 15) when no filters are applied
+  // Show popular stations (3 highest-rated from first 15) when no filters are applied
   const hasActiveFilters = searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly;
-  const displayedStations = hasActiveFilters ? filteredStations : (stations || []).slice(0, 15).filter(hasValidCoordinates);
+  const displayedStations = hasActiveFilters 
+    ? filteredStations 
+    : (stations || [])
+        .slice(0, 15)
+        .filter(hasValidCoordinates)
+        .sort((a, b) => (parseFloat(b.rating || "0") || 0) - (parseFloat(a.rating || "0") || 0))
+        .slice(0, 3);
 
   // Determine map center based on search
   const mapCenter: [number, number] = searchCity 
