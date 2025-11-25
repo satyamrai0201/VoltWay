@@ -49,6 +49,9 @@ export default function StationDetail() {
   const [bankName, setBankName] = useState("");
   const [pendingBookingData, setPendingBookingData] = useState<any>(null);
   const [totalPrice, setTotalPrice] = useState("0");
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState<5 | 4 | 3 | 2 | 1>(5);
+  const [reviewComment, setReviewComment] = useState("");
 
   const packages = [
     { hours: 3, label: "3 Hours" },
@@ -70,6 +73,35 @@ export default function StationDetail() {
 
   const { data: reviews } = useQuery<Review[]>({
     queryKey: ["/api/stations", stationId, "reviews"],
+  });
+
+  const submitReview = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to submit review");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/stations", stationId, "reviews"] });
+      toast({
+        title: "Review submitted!",
+        description: "Thank you for your feedback.",
+      });
+      setIsReviewOpen(false);
+      setReviewRating(5);
+      setReviewComment("");
+    },
+    onError: () => {
+      toast({
+        title: "Failed to submit review",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    },
   });
 
   const createBooking = useMutation({
@@ -832,8 +864,83 @@ export default function StationDetail() {
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <CardTitle>Reviews ({reviews?.length || 0})</CardTitle>
+              <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="gap-2" data-testid="button-add-review">
+                    <Star size={16} />
+                    Write Review
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Write a Review</DialogTitle>
+                    <DialogDescription>
+                      Share your experience at {station?.name}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Rating</Label>
+                      <div className="flex gap-2">
+                        {[5, 4, 3, 2, 1].map((rating) => (
+                          <button
+                            key={rating}
+                            onClick={() => setReviewRating(rating as 5 | 4 | 3 | 2 | 1)}
+                            className={`px-4 py-2 rounded-lg transition-colors ${
+                              reviewRating === rating
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted hover:bg-muted/80"
+                            }`}
+                            data-testid={`button-rating-${rating}`}
+                          >
+                            <div className="flex items-center gap-1">
+                              <Star size={14} className={reviewRating === rating ? "fill-current" : ""} />
+                              {rating}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="review-comment">Comment (Optional)</Label>
+                      <Textarea
+                        id="review-comment"
+                        placeholder="Share your experience..."
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        className="resize-none"
+                        data-testid="input-review-comment"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => {
+                        if (!user) {
+                          toast({
+                            title: "Please log in",
+                            description: "You need to be logged in to submit a review.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        submitReview.mutate({
+                          bookingId: "booking-1",
+                          userId: user.id,
+                          stationId: stationId,
+                          rating: reviewRating,
+                          comment: reviewComment || null,
+                        });
+                      }}
+                      disabled={submitReview.isPending}
+                      className="w-full"
+                      data-testid="button-submit-review"
+                    >
+                      {submitReview.isPending ? "Submitting..." : "Submit Review"}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="space-y-4">
               {reviews && reviews.length > 0 ? (
