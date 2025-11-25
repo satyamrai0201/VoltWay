@@ -48,59 +48,61 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
       data-testid="navigation-main"
     >
       <div className="bg-background/80 backdrop-blur-md rounded-full border px-6 py-3 shadow-lg">
-        <div className="flex items-center justify-between w-full">
-          <Link href="/" className="text-2xl font-bold tracking-tight hover-elevate rounded-full px-3 py-1" data-testid="link-home">
+        <div className="flex items-center justify-between w-full gap-4">
+          <Link href="/" className="text-2xl font-bold tracking-tight hover-elevate rounded-full px-3 py-1 shrink-0" data-testid="link-home">
             VoltWay
           </Link>
 
-          <div className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href} className="px-4 py-2 text-sm font-medium hover-elevate rounded-full transition-colors" data-testid={`link-${link.label.toLowerCase()}`}>
                 {link.label}
               </Link>
             ))}
-            
-            {/* Login/Profile Button - Right next to Dashboard */}
-            <div className="ml-4 pl-4 border-l border-border">
-              {isLoggedIn ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    className="hover-elevate rounded-full p-1 transition-transform"
-                    data-testid="button-profile"
-                    title={user ? `${user.firstName} ${user.lastName}` : "Profile"}
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.avatarUrl || ""} />
-                      <AvatarFallback className="bg-gradient-to-br from-lime-400 to-lime-500 text-black text-xs font-bold">
-                        {getInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                  <AnimatePresence>
-                    {profileOpen && (
-                      <ProfileDropdown onClose={() => setProfileOpen(false)} />
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => {
-                    window.location.href = "/api/login";
-                  }}
-                  className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
-                  size="sm"
-                  data-testid="button-login"
-                >
-                  Login
-                </Button>
-              )}
-            </div>
           </div>
 
+          {/* Login/Profile Button - Always visible */}
+          <div className="flex items-center gap-2 shrink-0">
+            {isLoggedIn ? (
+              <div className="relative">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="hover-elevate rounded-full p-1 transition-transform"
+                  data-testid="button-profile"
+                  title={user ? `${user.firstName} ${user.lastName}` : "Profile"}
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={user?.avatarUrl || ""} />
+                    <AvatarFallback className="bg-gradient-to-br from-lime-400 to-lime-500 text-black text-xs font-bold">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+                <AnimatePresence>
+                  {profileOpen && (
+                    <ProfileDropdown onClose={() => setProfileOpen(false)} />
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  window.location.href = "/api/login";
+                }}
+                className="rounded-full bg-lime-400 text-black hover:bg-lime-500"
+                size="sm"
+                data-testid="button-login"
+              >
+                Login
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden hover-elevate rounded-full p-2"
+            className="lg:hidden hover-elevate rounded-full p-2"
             data-testid="button-mobile-menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
