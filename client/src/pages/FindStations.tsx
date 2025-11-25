@@ -34,6 +34,19 @@ interface CityTip {
   lon: string;
 }
 
+// Helper function to safely parse coordinates
+const parseCoordinate = (value: string | number): number => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? 0 : num;
+};
+
+// Helper function to validate coordinates
+const hasValidCoordinates = (station: Station): boolean => {
+  const lat = parseCoordinate(station.latitude);
+  const lon = parseCoordinate(station.longitude);
+  return lat !== 0 && lon !== 0 && !isNaN(lat) && !isNaN(lon);
+};
+
 export default function FindStations() {
   const [searchCity, setSearchCity] = useState("");
   const [chargerType, setChargerType] = useState<string>("all");
@@ -119,6 +132,10 @@ export default function FindStations() {
 
   // Filter stations based on search and filters
   const filteredStations = (stations || []).filter((station) => {
+    // Skip stations with invalid coordinates
+    if (!hasValidCoordinates(station)) {
+      return false;
+    }
     // Filter by city
     if (searchCity && !station.city.toLowerCase().includes(searchCity.toLowerCase())) {
       return false;
@@ -142,7 +159,7 @@ export default function FindStations() {
   const mapCenter: [number, number] = searchCity 
     ? cityCoordinates[searchCity.toLowerCase()] || [28.4595, 77.0266]
     : filteredStations.length > 0 
-      ? [parseFloat(filteredStations[0].latitude), parseFloat(filteredStations[0].longitude)]
+      ? [parseCoordinate(filteredStations[0].latitude), parseCoordinate(filteredStations[0].longitude)]
       : [28.4595, 77.0266]; // Default to Gurgaon
 
   return (
@@ -360,7 +377,7 @@ export default function FindStations() {
               {filteredStations.map((station) => (
                 <Marker
                   key={station.id}
-                  position={[parseFloat(station.latitude), parseFloat(station.longitude)]}
+                  position={[parseCoordinate(station.latitude), parseCoordinate(station.longitude)]}
                 >
                   <Popup>
                     <div className="space-y-2 p-1">

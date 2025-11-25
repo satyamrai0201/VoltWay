@@ -34,8 +34,14 @@ import { z } from "zod";
 import { useLocation } from "wouter";
 
 const formSchema = insertStationSchema.extend({
-  latitude: z.string(),
-  longitude: z.string(),
+  latitude: z.string().min(1, "Latitude is required").refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) >= -90 && parseFloat(val) <= 90,
+    "Latitude must be a valid number between -90 and 90"
+  ),
+  longitude: z.string().min(1, "Longitude is required").refine(
+    (val) => !isNaN(parseFloat(val)) && parseFloat(val) >= -180 && parseFloat(val) <= 180,
+    "Longitude must be a valid number between -180 and 180"
+  ),
   pricePerHour: z.string(),
   isHomeStation: z.boolean().default(false),
 });
