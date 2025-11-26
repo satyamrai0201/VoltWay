@@ -1,6 +1,6 @@
 /**
  * Generate an Iron Man arc repulsor sound using Web Audio API
- * Long, powerful arc charging sound (5 seconds)
+ * Long, powerful arc charging sound (5 seconds) + blast at end
  */
 
 let audioContext: AudioContext | null = null;
@@ -35,8 +35,8 @@ export function playZapSound() {
     bassOsc.frequency.linearRampToValueAtTime(120, now + duration);
 
     bassGain.gain.setValueAtTime(0, now);
-    bassGain.gain.linearRampToValueAtTime(0.35, now + duration * 0.2);
-    bassGain.gain.linearRampToValueAtTime(0.45, now + duration);
+    bassGain.gain.linearRampToValueAtTime(0.175, now + duration * 0.2);
+    bassGain.gain.linearRampToValueAtTime(0.225, now + duration);
 
     bassFilter.type = 'lowpass';
     bassFilter.frequency.setValueAtTime(200, now);
@@ -59,9 +59,9 @@ export function playZapSound() {
     arcOsc.frequency.exponentialRampToValueAtTime(2400, now + duration * 0.8);
     arcOsc.frequency.linearRampToValueAtTime(2000, now + duration);
 
-    arcGain.gain.setValueAtTime(0.1, now);
-    arcGain.gain.linearRampToValueAtTime(0.4, now + duration * 0.3);
-    arcGain.gain.linearRampToValueAtTime(0.5, now + duration);
+    arcGain.gain.setValueAtTime(0.05, now);
+    arcGain.gain.linearRampToValueAtTime(0.2, now + duration * 0.3);
+    arcGain.gain.linearRampToValueAtTime(0.25, now + duration);
 
     arcFilter.type = 'highpass';
     arcFilter.frequency.setValueAtTime(600, now);
@@ -82,9 +82,9 @@ export function playZapSound() {
     harmOsc.frequency.exponentialRampToValueAtTime(4800, now + duration * 0.7);
     harmOsc.frequency.linearRampToValueAtTime(3200, now + duration);
 
-    harmGain.gain.setValueAtTime(0.08, now);
-    harmGain.gain.linearRampToValueAtTime(0.25, now + duration * 0.4);
-    harmGain.gain.linearRampToValueAtTime(0.35, now + duration);
+    harmGain.gain.setValueAtTime(0.04, now);
+    harmGain.gain.linearRampToValueAtTime(0.125, now + duration * 0.4);
+    harmGain.gain.linearRampToValueAtTime(0.175, now + duration);
 
     harmOsc.start(now);
     harmOsc.stop(now + duration);
@@ -111,13 +111,13 @@ export function playZapSound() {
 
     // LFO modulation for pulsing effect
     buzzLFO.frequency.setValueAtTime(4, now);
-    buzzLFOGain.gain.setValueAtTime(0.08, now);
+    buzzLFOGain.gain.setValueAtTime(0.04, now);
     buzzLFO.connect(buzzLFOGain);
     buzzLFOGain.connect(buzzGain.gain);
 
-    buzzGain.gain.setValueAtTime(0.05, now);
-    buzzGain.gain.linearRampToValueAtTime(0.25, now + duration * 0.5);
-    buzzGain.gain.linearRampToValueAtTime(0.3, now + duration);
+    buzzGain.gain.setValueAtTime(0.025, now);
+    buzzGain.gain.linearRampToValueAtTime(0.125, now + duration * 0.5);
+    buzzGain.gain.linearRampToValueAtTime(0.15, now + duration);
 
     buzzOsc.start(now);
     buzzOsc.stop(now + duration);
@@ -127,7 +127,12 @@ export function playZapSound() {
     // Electrical crackle noise - arc intensity
     createArcNoise(ctx, now, duration);
 
-    console.log('Arc repulsor sound playing for 5 seconds');
+    // Schedule blast sound at the end
+    setTimeout(() => {
+      playBlastSound(ctx);
+    }, duration * 1000);
+
+    console.log('Arc repulsor sound playing for 5 seconds + blast');
   } catch (error) {
     console.log('Audio error:', error);
   }
@@ -144,7 +149,7 @@ function createArcNoise(ctx: AudioContext, startTime: number, duration: number) 
       const progress = i / bufferSize;
       // More intense noise as time goes on
       const intensity = Math.pow(progress, 0.5);
-      noiseData[i] = (Math.random() * 2 - 1) * intensity * 0.8;
+      noiseData[i] = (Math.random() * 2 - 1) * intensity * 0.4;
     }
 
     const noiseSource = ctx.createBufferSource();
@@ -164,12 +169,100 @@ function createArcNoise(ctx: AudioContext, startTime: number, duration: number) 
     noiseFilter.Q.setValueAtTime(12, startTime);
 
     noiseGain.gain.setValueAtTime(0, startTime);
-    noiseGain.gain.linearRampToValueAtTime(0.15, startTime + duration * 0.2);
-    noiseGain.gain.linearRampToValueAtTime(0.25, startTime + duration);
+    noiseGain.gain.linearRampToValueAtTime(0.075, startTime + duration * 0.2);
+    noiseGain.gain.linearRampToValueAtTime(0.125, startTime + duration);
 
     noiseSource.start(startTime);
     noiseSource.stop(startTime + duration);
   } catch (error) {
     console.log('Noise generation error:', error);
+  }
+}
+
+function playBlastSound(ctx: AudioContext) {
+  try {
+    const now = ctx.currentTime;
+    const blastDuration = 0.8;
+
+    // Explosive low-frequency burst
+    const blastOsc = ctx.createOscillator();
+    const blastGain = ctx.createGain();
+    const blastFilter = ctx.createBiquadFilter();
+
+    blastOsc.connect(blastFilter);
+    blastFilter.connect(blastGain);
+    blastGain.connect(ctx.destination);
+
+    blastOsc.type = 'sine';
+    blastOsc.frequency.setValueAtTime(400, now);
+    blastOsc.frequency.exponentialRampToValueAtTime(80, now + blastDuration);
+
+    blastGain.gain.setValueAtTime(0.2, now);
+    blastGain.gain.exponentialRampToValueAtTime(0.02, now + blastDuration);
+
+    blastFilter.type = 'lowpass';
+    blastFilter.frequency.setValueAtTime(1200, now);
+    blastFilter.frequency.exponentialRampToValueAtTime(200, now + blastDuration);
+    blastFilter.Q.setValueAtTime(4, now);
+
+    blastOsc.start(now);
+    blastOsc.stop(now + blastDuration);
+
+    // High-frequency energy burst
+    const energyOsc = ctx.createOscillator();
+    const energyGain = ctx.createGain();
+    const energyFilter = ctx.createBiquadFilter();
+
+    energyOsc.connect(energyFilter);
+    energyFilter.connect(energyGain);
+    energyGain.connect(ctx.destination);
+
+    energyOsc.type = 'square';
+    energyOsc.frequency.setValueAtTime(3000, now);
+    energyOsc.frequency.exponentialRampToValueAtTime(1200, now + blastDuration * 0.6);
+
+    energyGain.gain.setValueAtTime(0.15, now);
+    energyGain.gain.exponentialRampToValueAtTime(0.01, now + blastDuration);
+
+    energyFilter.type = 'highpass';
+    energyFilter.frequency.setValueAtTime(2000, now);
+    energyFilter.Q.setValueAtTime(6, now);
+
+    energyOsc.start(now);
+    energyOsc.stop(now + blastDuration);
+
+    // Blast noise crackle
+    const bufferSize = ctx.sampleRate * blastDuration;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      const decay = 1 - (i / bufferSize);
+      noiseData[i] = (Math.random() * 2 - 1) * decay * 0.5;
+    }
+
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+
+    const noiseGain = ctx.createGain();
+    const noiseFilter = ctx.createBiquadFilter();
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+
+    noiseFilter.type = 'highpass';
+    noiseFilter.frequency.setValueAtTime(4000, now);
+    noiseFilter.Q.setValueAtTime(10, now);
+
+    noiseGain.gain.setValueAtTime(0.15, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + blastDuration);
+
+    noiseSource.start(now);
+    noiseSource.stop(now + blastDuration);
+
+    console.log('Blast sound triggered!');
+  } catch (error) {
+    console.log('Blast sound error:', error);
   }
 }
