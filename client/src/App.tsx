@@ -72,7 +72,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Chatbot />
+        {!showWelcomeOverlay && <Chatbot />}
         <AnimatePresence>
           {showWelcomeOverlay && (
             <motion.div
