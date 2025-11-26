@@ -46,14 +46,15 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
   ];
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="sm:sticky md:fixed sm:top-0 md:top-4 left-1/2 -translate-x-1/2 z-[9999] w-full md:w-[95%] md:max-w-6xl pointer-events-auto"
-      data-testid="navigation-main"
-    >
-      <div className="bg-background/80 backdrop-blur-md rounded-none md:rounded-full border-b md:border px-4 md:px-6 py-3 shadow-lg md:mx-auto md:w-[95%] md:max-w-6xl md:left-1/2 md:-translate-x-1/2">
+    <>
+      <motion.nav
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="max-sm:sticky max-sm:top-0 md:fixed md:top-4 left-1/2 -translate-x-1/2 z-[9999] max-sm:w-full md:w-[95%] md:max-w-6xl pointer-events-auto"
+        data-testid="navigation-main"
+      >
+        <div className="bg-background/80 backdrop-blur-md max-sm:rounded-none md:rounded-full max-sm:border-b md:border px-4 md:px-6 py-3 shadow-lg">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold tracking-tight hover-elevate rounded-full px-3 py-1" data-testid="link-home">
             VoltWay
@@ -160,7 +161,8 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </motion.nav>
+        </div>
+      </motion.nav>
+    </>
   );
 }
