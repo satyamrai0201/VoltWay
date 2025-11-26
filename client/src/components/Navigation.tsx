@@ -23,12 +23,14 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
     { label: "Stations", href: "/find-stations" },
     { label: "Bookings", href: "/bookings" },
     { label: "Dashboard", href: "/host/dashboard" },
+    { label: "Profile", href: "/profile" },
   ];
 
   const mobileNavLinks = [
     { label: "Find Stations", href: "/find-stations" },
     { label: "My Bookings", href: "/bookings" },
     { label: "Host Dashboard", href: "/host/dashboard" },
+    { label: "Profile", href: "/profile" },
     { label: "Become a Host", href: "/host/new" },
   ];
 
