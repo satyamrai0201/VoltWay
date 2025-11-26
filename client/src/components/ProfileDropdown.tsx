@@ -13,8 +13,6 @@ export default function ProfileDropdown({ onClose }: ProfileDropdownProps) {
 
   const menuItems = [
     { icon: User, label: "My Profile", href: "/profile" },
-    { icon: Calendar, label: "My Bookings", href: "/bookings" },
-    { icon: Bookmark, label: "Saved Stations", href: "/saved" },
   ];
 
   const handleItemClick = () => {
