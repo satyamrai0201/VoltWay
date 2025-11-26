@@ -51,7 +51,7 @@ export default function ProfileDropdown({ onClose }: ProfileDropdownProps) {
               data-testid={`link-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
             >
               <item.icon size={18} className="text-muted-foreground" />
-              <span>{item.label}</span>
+              {item.label}
             </Link>
           ))}
           <Separator className="my-2" />
