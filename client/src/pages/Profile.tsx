@@ -38,6 +38,7 @@ export default function Profile() {
       await apiRequest("PUT", `/api/users/${user.id}`, {
         firstName,
         lastName,
+        email,
         phoneNumber: phone,
       });
       // Invalidate user cache to sync across the site
@@ -55,6 +56,20 @@ export default function Profile() {
       });
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("GET", "/api/logout");
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      window.location.href = "/";
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -185,16 +200,18 @@ export default function Profile() {
                 <div className="space-y-1">
                   <p className="font-medium">Host Status</p>
                   <p className="text-sm text-muted-foreground">
-                    Start hosting charging stations to earn revenue
+                    {user?.isHost ? "You are an active host" : "Start hosting charging stations to earn revenue"}
                   </p>
                 </div>
                 <Badge variant="outline" data-testid="badge-host-status">
-                  Not a Host
+                  {user?.isHost ? "Active Host" : "Not a Host"}
                 </Badge>
               </div>
-              <Button variant="outline" className="w-full" data-testid="button-become-host">
-                Become a Host
-              </Button>
+              {!user?.isHost && (
+                <Button variant="outline" className="w-full" data-testid="button-become-host">
+                  Become a Host
+                </Button>
+              )}
             </CardContent>
           </Card>
 
@@ -203,11 +220,8 @@ export default function Profile() {
               <CardTitle>Account Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" data-testid="button-change-password">
-                Change Password
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-destructive" data-testid="button-delete-account">
-                Delete Account
+              <Button variant="outline" className="w-full justify-start text-destructive" onClick={handleLogout} data-testid="button-logout">
+                Logout
               </Button>
             </CardContent>
           </Card>
