@@ -1,6 +1,6 @@
 /**
- * Generate an accurate Iron Man arc repulsor sound from Avengers
- * 3 seconds with fade in and fade out
+ * Two live wires touching - electric short circuit sound
+ * 2 seconds with smooth fade in/out, soft and not harsh
  */
 
 let audioContext: AudioContext | null = null;
@@ -19,85 +19,65 @@ export function playZapSound() {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
-    const duration = 3;
-    const fadeInDuration = 0.3;
-    const fadeOutStart = duration - 0.4;
+    const duration = 2;
+    const fadeInDuration = 0.15;
+    const fadeOutStart = duration - 0.25;
 
-    // Core resonant tone - the arc reactor hum
-    const coreOsc = ctx.createOscillator();
-    const coreGain = ctx.createGain();
-    const coreFilter = ctx.createBiquadFilter();
+    // Sharp electrical crackle - primary short circuit sound
+    const crackleOsc = ctx.createOscillator();
+    const crackleGain = ctx.createGain();
+    const crackleFilter = ctx.createBiquadFilter();
 
-    coreOsc.connect(coreFilter);
-    coreFilter.connect(coreGain);
-    coreGain.connect(ctx.destination);
+    crackleOsc.connect(crackleFilter);
+    crackleFilter.connect(crackleGain);
+    crackleGain.connect(ctx.destination);
 
-    coreOsc.type = 'sine';
-    coreOsc.frequency.setValueAtTime(200, now);
-    coreOsc.frequency.linearRampToValueAtTime(280, now + duration);
+    crackleOsc.type = 'square';
+    crackleOsc.frequency.setValueAtTime(2200, now);
+    crackleOsc.frequency.exponentialRampToValueAtTime(4200, now + duration * 0.5);
+    crackleOsc.frequency.linearRampToValueAtTime(3000, now + duration);
 
-    coreFilter.type = 'lowpass';
-    coreFilter.frequency.setValueAtTime(400, now);
-    coreFilter.Q.setValueAtTime(2, now);
+    crackleFilter.type = 'highpass';
+    crackleFilter.frequency.setValueAtTime(1500, now);
+    crackleFilter.Q.setValueAtTime(5, now);
 
-    // Fade in, sustain, fade out
-    coreGain.gain.setValueAtTime(0, now);
-    coreGain.gain.linearRampToValueAtTime(0.2, now + fadeInDuration);
-    coreGain.gain.linearRampToValueAtTime(0.25, now + fadeOutStart);
-    coreGain.gain.linearRampToValueAtTime(0, now + duration);
+    // Smooth fade in/out
+    crackleGain.gain.setValueAtTime(0, now);
+    crackleGain.gain.linearRampToValueAtTime(0.12, now + fadeInDuration);
+    crackleGain.gain.linearRampToValueAtTime(0.15, now + fadeOutStart);
+    crackleGain.gain.linearRampToValueAtTime(0, now + duration);
 
-    coreOsc.start(now);
-    coreOsc.stop(now + duration);
+    crackleOsc.start(now);
+    crackleOsc.stop(now + duration);
 
-    // Primary rising whine - main arc charging sound
-    const whineOsc = ctx.createOscillator();
-    const whineGain = ctx.createGain();
-    const whineFilter = ctx.createBiquadFilter();
+    // Lower electrical hum - wire contact tone
+    const hummOsc = ctx.createOscillator();
+    const hummGain = ctx.createGain();
+    const hummFilter = ctx.createBiquadFilter();
 
-    whineOsc.connect(whineFilter);
-    whineFilter.connect(whineGain);
-    whineGain.connect(ctx.destination);
+    hummOsc.connect(hummFilter);
+    hummFilter.connect(hummGain);
+    hummGain.connect(ctx.destination);
 
-    whineOsc.type = 'sine';
-    whineOsc.frequency.setValueAtTime(900, now);
-    whineOsc.frequency.exponentialRampToValueAtTime(2200, now + duration * 0.75);
-    whineOsc.frequency.linearRampToValueAtTime(1900, now + duration);
+    hummOsc.type = 'sine';
+    hummOsc.frequency.setValueAtTime(180, now);
+    hummOsc.frequency.linearRampToValueAtTime(250, now + duration * 0.6);
+    hummOsc.frequency.linearRampToValueAtTime(200, now + duration);
 
-    whineFilter.type = 'highpass';
-    whineFilter.frequency.setValueAtTime(500, now);
-    whineFilter.Q.setValueAtTime(3, now);
+    hummFilter.type = 'lowpass';
+    hummFilter.frequency.setValueAtTime(600, now);
+    hummFilter.Q.setValueAtTime(2, now);
 
-    // Fade in, sustain, fade out
-    whineGain.gain.setValueAtTime(0, now);
-    whineGain.gain.linearRampToValueAtTime(0.25, now + fadeInDuration);
-    whineGain.gain.linearRampToValueAtTime(0.35, now + fadeOutStart);
-    whineGain.gain.linearRampToValueAtTime(0, now + duration);
+    // Fade in/out
+    hummGain.gain.setValueAtTime(0, now);
+    hummGain.gain.linearRampToValueAtTime(0.08, now + fadeInDuration);
+    hummGain.gain.linearRampToValueAtTime(0.1, now + fadeOutStart);
+    hummGain.gain.linearRampToValueAtTime(0, now + duration);
 
-    whineOsc.start(now);
-    whineOsc.stop(now + duration);
+    hummOsc.start(now);
+    hummOsc.stop(now + duration);
 
-    // Upper harmonic - adds brightness and energy
-    const harmOsc = ctx.createOscillator();
-    const harmGain = ctx.createGain();
-
-    harmOsc.connect(harmGain);
-    harmGain.connect(ctx.destination);
-
-    harmOsc.type = 'triangle';
-    harmOsc.frequency.setValueAtTime(1800, now);
-    harmOsc.frequency.exponentialRampToValueAtTime(4000, now + duration * 0.8);
-    harmOsc.frequency.linearRampToValueAtTime(3200, now + duration);
-
-    // Fade in, sustain, fade out
-    harmGain.gain.setValueAtTime(0, now);
-    harmGain.gain.linearRampToValueAtTime(0.15, now + fadeInDuration);
-    harmGain.gain.linearRampToValueAtTime(0.2, now + fadeOutStart);
-    harmGain.gain.linearRampToValueAtTime(0, now + duration);
-
-    harmOsc.start(now);
-    harmOsc.stop(now + duration);
-
-    // Sawtooth buzz for electrical character
+    // Mid-range buzz - arcing electricity
     const buzzOsc = ctx.createOscillator();
     const buzzGain = ctx.createGain();
     const buzzFilter = ctx.createBiquadFilter();
@@ -107,45 +87,33 @@ export function playZapSound() {
     buzzGain.connect(ctx.destination);
 
     buzzOsc.type = 'sawtooth';
-    buzzOsc.frequency.setValueAtTime(2800, now);
-    buzzOsc.frequency.exponentialRampToValueAtTime(5600, now + duration * 0.85);
+    buzzOsc.frequency.setValueAtTime(1400, now);
+    buzzOsc.frequency.exponentialRampToValueAtTime(2800, now + duration * 0.7);
 
     buzzFilter.type = 'highpass';
-    buzzFilter.frequency.setValueAtTime(2000, now);
-    buzzFilter.frequency.exponentialRampToValueAtTime(4000, now + duration);
-    buzzFilter.Q.setValueAtTime(6, now);
+    buzzFilter.frequency.setValueAtTime(1200, now);
+    buzzFilter.frequency.exponentialRampToValueAtTime(2200, now + duration);
+    buzzFilter.Q.setValueAtTime(4, now);
 
-    // Fade in, sustain, fade out
+    // Fade in/out
     buzzGain.gain.setValueAtTime(0, now);
-    buzzGain.gain.linearRampToValueAtTime(0.12, now + fadeInDuration);
-    buzzGain.gain.linearRampToValueAtTime(0.16, now + fadeOutStart);
+    buzzGain.gain.linearRampToValueAtTime(0.06, now + fadeInDuration);
+    buzzGain.gain.linearRampToValueAtTime(0.08, now + fadeOutStart);
     buzzGain.gain.linearRampToValueAtTime(0, now + duration);
 
     buzzOsc.start(now);
     buzzOsc.stop(now + duration);
 
-    // Tremolo LFO for pulsing energy effect
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
+    // Short circuit crackling noise
+    createShortCircuitNoise(ctx, now, duration, fadeInDuration, fadeOutStart);
 
-    lfo.frequency.setValueAtTime(4.5, now);
-    lfoGain.gain.setValueAtTime(80, now);
-    lfo.connect(lfoGain);
-    lfoGain.connect(whineOsc.frequency);
-
-    lfo.start(now);
-    lfo.stop(now + duration);
-
-    // Arc crackling noise - electrical texture
-    createArcNoise(ctx, now, duration, fadeInDuration, fadeOutStart);
-
-    console.log('Arc repulsor sound playing - 3 seconds with fade');
+    console.log('Short circuit sound - 2 seconds with fade');
   } catch (error) {
     console.log('Audio error:', error);
   }
 }
 
-function createArcNoise(
+function createShortCircuitNoise(
   ctx: AudioContext,
   startTime: number,
   duration: number,
@@ -157,13 +125,13 @@ function createArcNoise(
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const noiseData = noiseBuffer.getChannelData(0);
 
-    // Create bursting electrical noise
+    // Create bursting crackle pattern for short circuit effect
     let pos = 0;
     while (pos < bufferSize) {
-      const burstLength = Math.random() * ctx.sampleRate * 0.04 + ctx.sampleRate * 0.02;
-      const silenceLength = Math.random() * ctx.sampleRate * 0.06 + ctx.sampleRate * 0.015;
+      const burstLength = Math.random() * ctx.sampleRate * 0.03 + ctx.sampleRate * 0.015;
+      const silenceLength = Math.random() * ctx.sampleRate * 0.05 + ctx.sampleRate * 0.01;
       const progress = pos / bufferSize;
-      const intensity = Math.pow(progress, 0.3); // Builds toward end
+      const intensity = Math.pow(progress, 0.4);
 
       // Silence
       for (let i = 0; i < silenceLength && pos < bufferSize; i++) {
@@ -171,7 +139,7 @@ function createArcNoise(
       }
       // Noise burst
       for (let i = 0; i < burstLength && pos < bufferSize; i++) {
-        noiseData[pos++] = (Math.random() * 2 - 1) * intensity * 0.5;
+        noiseData[pos++] = (Math.random() * 2 - 1) * intensity * 0.35;
       }
     }
 
@@ -186,14 +154,14 @@ function createArcNoise(
     noiseGain.connect(ctx.destination);
 
     noiseFilter.type = 'highpass';
-    noiseFilter.frequency.setValueAtTime(3000, startTime);
-    noiseFilter.frequency.exponentialRampToValueAtTime(6000, startTime + duration * 0.85);
-    noiseFilter.Q.setValueAtTime(10, startTime);
+    noiseFilter.frequency.setValueAtTime(2500, startTime);
+    noiseFilter.frequency.exponentialRampToValueAtTime(5000, startTime + duration * 0.8);
+    noiseFilter.Q.setValueAtTime(8, startTime);
 
-    // Fade in, sustain, fade out
+    // Fade in/out
     noiseGain.gain.setValueAtTime(0, startTime);
-    noiseGain.gain.linearRampToValueAtTime(0.1, startTime + fadeInDuration);
-    noiseGain.gain.linearRampToValueAtTime(0.14, startTime + fadeOutStart);
+    noiseGain.gain.linearRampToValueAtTime(0.09, startTime + fadeInDuration);
+    noiseGain.gain.linearRampToValueAtTime(0.12, startTime + fadeOutStart);
     noiseGain.gain.linearRampToValueAtTime(0, startTime + duration);
 
     noiseSource.start(startTime);
