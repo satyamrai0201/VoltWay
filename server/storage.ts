@@ -523,7 +523,7 @@ export class MemStorage implements IStorage {
         state: "Haryana",
         zipCode: "122004",
         latitude: "28.45012",
-        longitude: "77.0523",
+        longitude: "77.02876",
         imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
         chargerType: "CCS2",
         powerOutput: 250,
