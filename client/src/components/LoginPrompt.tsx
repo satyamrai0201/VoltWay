@@ -15,9 +15,21 @@ export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
 
   // Trigger zap animation and sound on mount
   useEffect(() => {
+    // Resume audio context on user interaction first
+    const handleFirstInteraction = () => {
+      playZapSound();
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
+    };
+
     const timer = setTimeout(() => {
       setZapTriggered(true);
+      // Try to play sound immediately
       playZapSound();
+      
+      // Also setup fallback - play on first interaction if needed
+      document.addEventListener('click', handleFirstInteraction);
+      document.addEventListener('touchstart', handleFirstInteraction);
     }, 300);
 
     const contentTimer = setTimeout(() => {
@@ -27,6 +39,8 @@ export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
     return () => {
       clearTimeout(timer);
       clearTimeout(contentTimer);
+      document.removeEventListener('click', handleFirstInteraction);
+      document.removeEventListener('touchstart', handleFirstInteraction);
     };
   }, []);
 
