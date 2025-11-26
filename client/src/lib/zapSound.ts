@@ -1,6 +1,6 @@
 /**
- * Generate a zap/electric sound using Web Audio API
- * Creates a realistic electric discharge sound effect
+ * Generate a short circuit/continuous shock sound using Web Audio API
+ * Creates a realistic electrical shock/electrocution effect
  */
 
 let audioContext: AudioContext | null = null;
@@ -9,7 +9,6 @@ function getAudioContext(): AudioContext {
   if (!audioContext) {
     audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
-  // Resume audio context if suspended (required by browser autoplay policies)
   if (audioContext.state === 'suspended') {
     audioContext.resume().catch(err => console.log('Audio context resume failed:', err));
   }
@@ -20,70 +19,20 @@ export function playZapSound() {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
+    const duration = 0.4; // Longer continuous shock
 
-    // Main zap sound - frequency sweep
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    const gain2 = ctx.createGain();
+    // Create main master gain for overall volume control
     const masterGain = ctx.createGain();
-    const filter = ctx.createBiquadFilter();
-
-    // Connect audio graph
-    osc1.connect(gain1);
-    osc2.connect(gain2);
-    gain1.connect(filter);
-    gain2.connect(filter);
-    filter.connect(masterGain);
     masterGain.connect(ctx.destination);
+    masterGain.gain.setValueAtTime(0.5, now);
+    masterGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-    // Primary oscillator - main zap tone
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(200, now);
-    osc1.frequency.exponentialRampToValueAtTime(80, now + 0.12);
-    gain1.gain.setValueAtTime(0.4, now);
-    gain1.gain.exponentialRampToValueAtTime(0.05, now + 0.12);
-
-    // Secondary oscillator - harmonic
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(400, now);
-    osc2.frequency.exponentialRampToValueAtTime(150, now + 0.1);
-    gain2.gain.setValueAtTime(0.2, now);
-    gain2.gain.exponentialRampToValueAtTime(0.02, now + 0.1);
-
-    // Filter sweep for crackle effect
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(100, now);
-    filter.frequency.linearRampToValueAtTime(3000, now + 0.08);
-    filter.Q.setValueAtTime(5, now);
-
-    // Master volume
-    masterGain.gain.setValueAtTime(0.4, now);
-    masterGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-
-    // Start oscillators
-    osc1.start(now);
-    osc1.stop(now + 0.12);
-    osc2.start(now);
-    osc2.stop(now + 0.1);
-
-    // Add noise/crackle for electric effect
-    createCrackleNoise(ctx, now);
-
-    console.log('Zap sound played successfully');
-  } catch (error) {
-    console.log('Audio playback error:', error);
-  }
-}
-
-function createCrackleNoise(ctx: AudioContext, startTime: number) {
-  try {
-    // Create white noise buffer
-    const bufferSize = ctx.sampleRate * 0.15;
+    // Create noise buffer for crackling/static
+    const bufferSize = ctx.sampleRate * duration;
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const noiseData = noiseBuffer.getChannelData(0);
 
-    // Fill with random noise
+    // Fill with aggressive random noise for crackling
     for (let i = 0; i < bufferSize; i++) {
       noiseData[i] = Math.random() * 2 - 1;
     }
@@ -92,29 +41,106 @@ function createCrackleNoise(ctx: AudioContext, startTime: number) {
     const noiseSource = ctx.createBufferSource();
     noiseSource.buffer = noiseBuffer;
 
-    // Create noise gain envelope
-    const noiseGain = ctx.createGain();
-    const noiseFilter = ctx.createBiquadFilter();
+    // Create high-pass filter for electrical crackle
+    const filter1 = ctx.createBiquadFilter();
+    filter1.type = 'highpass';
+    filter1.frequency.setValueAtTime(3000, now);
+    filter1.frequency.linearRampToValueAtTime(5000, now + duration);
+    filter1.Q.setValueAtTime(8, now);
 
-    // Connect noise
-    noiseSource.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
+    // Create another filter for more crackle
+    const filter2 = ctx.createBiquadFilter();
+    filter2.type = 'highpass';
+    filter2.frequency.setValueAtTime(5000, now);
+    filter2.Q.setValueAtTime(10, now);
 
-    // Configure filter for crackle
-    noiseFilter.type = 'highpass';
-    noiseFilter.frequency.setValueAtTime(2000, startTime);
-    noiseFilter.frequency.exponentialRampToValueAtTime(4000, startTime + 0.1);
-    noiseFilter.Q.setValueAtTime(3, startTime);
+    // Connect noise filters
+    noiseSource.connect(filter1);
+    filter1.connect(filter2);
 
-    // Noise envelope
-    noiseGain.gain.setValueAtTime(0.25, startTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.02, startTime + 0.1);
+    // Create pulse oscillator for shock tone
+    const pulse = ctx.createOscillator();
+    pulse.type = 'square';
+    pulse.frequency.setValueAtTime(220, now);
+    pulse.frequency.linearRampToValueAtTime(100, now + duration * 0.3);
+    pulse.frequency.linearRampToValueAtTime(50, now + duration);
 
-    // Play noise
-    noiseSource.start(startTime);
-    noiseSource.stop(startTime + 0.12);
+    const pulseGain = ctx.createGain();
+    pulse.connect(pulseGain);
+    pulseGain.gain.setValueAtTime(0.2, now);
+    pulseGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+    // Create AM (amplitude modulation) for electrical buzzing
+    const modOsc = ctx.createOscillator();
+    modOsc.frequency.setValueAtTime(60, now); // 60Hz hum
+    modOsc.frequency.linearRampToValueAtTime(120, now + duration);
+
+    const modGain = ctx.createGain();
+    modOsc.connect(modGain);
+    modGain.gain.setValueAtTime(0.4, now);
+    modGain.gain.exponentialRampToValueAtTime(0.1, now + duration);
+
+    // Mix everything through master
+    filter2.connect(masterGain);
+    pulseGain.connect(masterGain);
+    modGain.connect(masterGain);
+
+    // Start all oscillators and sources
+    noiseSource.start(now);
+    noiseSource.stop(now + duration);
+
+    pulse.start(now);
+    pulse.stop(now + duration);
+
+    modOsc.start(now);
+    modOsc.stop(now + duration);
+
+    // Create additional crackling noise bursts
+    createCrackleBursts(ctx, now, duration, masterGain);
+
+    console.log('Short circuit shock sound played');
   } catch (error) {
-    console.log('Crackle noise failed:', error);
+    console.log('Audio playback error:', error);
+  }
+}
+
+function createCrackleBursts(ctx: AudioContext, startTime: number, duration: number, masterGain: GainNode) {
+  try {
+    // Create random crackle bursts throughout the sound
+    const numBursts = 8;
+    for (let i = 0; i < numBursts; i++) {
+      const burstTime = startTime + (duration / numBursts) * i;
+      const burstDuration = 0.05;
+
+      // Create short noise burst
+      const burstBuffer = ctx.createBuffer(1, ctx.sampleRate * burstDuration, ctx.sampleRate);
+      const burstData = burstBuffer.getChannelData(0);
+
+      // Fill with aggressive crackling
+      for (let j = 0; j < burstBuffer.length; j++) {
+        burstData[j] = (Math.random() * 2 - 1) * (Math.random() > 0.3 ? 1 : 0);
+      }
+
+      const burstSource = ctx.createBufferSource();
+      burstSource.buffer = burstBuffer;
+
+      const burstFilter = ctx.createBiquadFilter();
+      burstFilter.type = 'highpass';
+      burstFilter.frequency.setValueAtTime(4000, burstTime);
+      burstFilter.Q.setValueAtTime(12, burstTime);
+
+      const burstGain = ctx.createGain();
+      burstGain.gain.setValueAtTime(0.3, burstTime);
+      burstGain.gain.exponentialRampToValueAtTime(0.01, burstTime + burstDuration);
+
+      burstSource.connect(burstFilter);
+      burstFilter.connect(burstGain);
+      burstGain.connect(masterGain);
+
+      burstSource.start(burstTime);
+      burstSource.stop(burstTime + burstDuration);
+    }
+  } catch (error) {
+    console.log('Crackle bursts failed:', error);
   }
 }
