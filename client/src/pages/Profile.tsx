@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 
 export default function Profile() {
   const { toast } = useToast();
@@ -208,8 +209,8 @@ export default function Profile() {
                 </Badge>
               </div>
               {!user?.isHost && (
-                <Button variant="outline" className="w-full" data-testid="button-become-host">
-                  Become a Host
+                <Button asChild variant="outline" className="w-full" data-testid="button-become-host">
+                  <Link href="/host/new">Become a Host</Link>
                 </Button>
               )}
             </CardContent>
