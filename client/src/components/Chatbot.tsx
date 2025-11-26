@@ -146,7 +146,7 @@ export default function Chatbot() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 space-y-3 overflow-hidden hover:overflow-auto">
+              <ScrollArea className="flex-1 p-4">
                 <div className="space-y-3">
                   {messages.map((message) => (
                     <motion.div
