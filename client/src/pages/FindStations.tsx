@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Search, Zap, Star, MapPin, X, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,73 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Link } from "wouter";
 
+// Custom lime green marker icon
+const createLimeMarker = () => {
+  return L.divIcon({
+    html: `<div class="flex items-center justify-center w-8 h-8 rounded-full bg-lime-400 border-2 border-lime-600 shadow-lg">
+      <div class="w-2 h-2 bg-lime-900 rounded-full"></div>
+    </div>`,
+    iconSize: [32, 32],
+    className: '',
+  });
+};
+
+// Home station marker icon
+const createHomeMarker = () => {
+  return L.divIcon({
+    html: `<div class="flex items-center justify-center w-8 h-8 rounded-full bg-lime-400 border-2 border-lime-700 shadow-lg ring-2 ring-lime-200">
+      <svg class="w-4 h-4 text-lime-900" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      </svg>
+    </div>`,
+    iconSize: [32, 32],
+    className: '',
+  });
+};
+
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
+
+// Map controller component to handle bounds fitting
+function MapController({ stations }: { stations: Station[] }) {
+  const map = useMap();
+  const prevStationsRef = useRef<string>("");
+
+  useEffect(() => {
+    const validStations = stations.filter(hasValidCoordinates);
+    
+    if (validStations.length === 0) return;
+
+    // Create a key to detect changes
+    const stationKey = validStations.map(s => `${s.id}`).join(',');
+    
+    // Only update if stations changed
+    if (prevStationsRef.current === stationKey) return;
+    prevStationsRef.current = stationKey;
+
+    // Build bounds from all station locations
+    const bounds = L.latLngBounds(
+      validStations.map(station => [
+        parseCoordinate(station.latitude),
+        parseCoordinate(station.longitude),
+      ])
+    );
+
+    // Fit bounds with padding
+    map.fitBounds(bounds, {
+      padding: [50, 50],
+      maxZoom: 15,
+      animate: true,
+      duration: 0.5,
+    });
+  }, [stations, map]);
+
+  return null;
+}
 
 interface CityTip {
   name: string;
@@ -159,12 +220,8 @@ export default function FindStations() {
   const hasActiveFilters = searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly;
   const displayedStations = hasActiveFilters ? filteredStations : (stations || []).slice(0, 15).filter(hasValidCoordinates);
 
-  // Determine map center based on search
-  const mapCenter: [number, number] = searchCity 
-    ? cityCoordinates[searchCity.toLowerCase()] || [28.4595, 77.0266]
-    : displayedStations.length > 0 
-      ? [parseCoordinate(displayedStations[0].latitude), parseCoordinate(displayedStations[0].longitude)]
-      : [28.4595, 77.0266]; // Default to Gurgaon
+  // Default map center (Gurgaon)
+  const defaultCenter: [number, number] = [28.4595, 77.0266];
 
   return (
     <div className="min-h-screen bg-background pt-20">
@@ -373,23 +430,29 @@ export default function FindStations() {
 
         <div className="flex-1">
           {displayedStations.length > 0 ? (
-            <MapContainer center={mapCenter} zoom={searchCity ? 12 : 11} className="h-full w-full">
+            <MapContainer center={defaultCenter} zoom={11} className="h-full w-full">
               <TileLayer 
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               />
+              <MapController stations={displayedStations} />
               {displayedStations.map((station) => (
                 <Marker
                   key={station.id}
                   position={[parseCoordinate(station.latitude), parseCoordinate(station.longitude)]}
+                  icon={station.isHomeStation ? createHomeMarker() : createLimeMarker()}
                 >
                   <Popup>
-                    <div className="space-y-2 p-1">
+                    <div className="space-y-2 p-1 max-w-xs">
                       <h3 className="font-semibold text-sm">{station.name}</h3>
-                      <p className="text-xs">{station.address}</p>
+                      <p className="text-xs text-muted-foreground">{station.address}</p>
+                      {station.isHomeStation && (
+                        <p className="text-xs font-semibold text-lime-600">Home Station - Low Rates</p>
+                      )}
                       <p className="text-xs font-bold text-primary">₹{station.pricePerHour}/hr</p>
+                      <p className="text-xs text-muted-foreground">{station.chargerType} • {station.powerOutput} kW</p>
                       <Link href={`/stations/${station.id}`}>
-                        <Button size="sm" className="w-full text-xs">
+                        <Button size="sm" className="w-full text-xs mt-2">
                           View Details
                         </Button>
                       </Link>
