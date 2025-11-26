@@ -115,7 +115,8 @@ export default function Chatbot() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-8 right-8 z-50 hover-elevate active-elevate-2 rounded-full bg-lime-400 text-black p-4 shadow-lg"
+        style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 9999 }}
+        className="hover-elevate active-elevate-2 rounded-full bg-lime-400 text-black p-4 shadow-lg"
         data-testid="button-chatbot-toggle"
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
