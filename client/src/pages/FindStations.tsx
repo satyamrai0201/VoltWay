@@ -52,25 +52,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-interface CityTip {
-  name: string;
-  lat: string;
-  lon: string;
-}
-
-// Helper function to safely parse coordinates
-const parseCoordinate = (value: string | number): number => {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  return isNaN(num) ? 0 : num;
-};
-
-// Helper function to validate coordinates
-const hasValidCoordinates = (station: Station): boolean => {
-  const lat = parseCoordinate(station.latitude);
-  const lon = parseCoordinate(station.longitude);
-  return lat !== 0 && lon !== 0 && !isNaN(lat) && !isNaN(lon);
-};
-
 // Map controller component to handle bounds fitting
 function MapController({ stations }: { stations: Station[] }) {
   const map = useMap();
@@ -107,6 +88,25 @@ function MapController({ stations }: { stations: Station[] }) {
 
   return null;
 }
+
+interface CityTip {
+  name: string;
+  lat: string;
+  lon: string;
+}
+
+// Helper function to safely parse coordinates
+const parseCoordinate = (value: string | number): number => {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? 0 : num;
+};
+
+// Helper function to validate coordinates
+const hasValidCoordinates = (station: Station): boolean => {
+  const lat = parseCoordinate(station.latitude);
+  const lon = parseCoordinate(station.longitude);
+  return lat !== 0 && lon !== 0 && !isNaN(lat) && !isNaN(lon);
+};
 
 export default function FindStations() {
   const [searchCity, setSearchCity] = useState("");
