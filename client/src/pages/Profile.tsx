@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Mail, Phone, Edit, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,21 +8,54 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function Profile() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [firstName, setFirstName] = useState("John");
-  const [lastName, setLastName] = useState("Doe");
-  const [email, setEmail] = useState("john.doe@example.com");
-  const [phone, setPhone] = useState("+91 98765 43210");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    toast({
-      title: "Profile updated",
-      description: "Your profile has been updated successfully.",
-    });
-    setIsEditing(false);
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setEmail(user.email || "");
+      setPhone(user.phoneNumber || "");
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+      await apiRequest("PUT", `/api/users/${user.id}`, {
+        firstName,
+        lastName,
+        phoneNumber: phone,
+      });
+      // Invalidate user cache to sync across the site
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated and synced across the site.",
+      });
+      setIsEditing(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -45,13 +78,14 @@ export default function Profile() {
               <Button
                 variant={isEditing ? "default" : "outline"}
                 onClick={isEditing ? handleSave : () => setIsEditing(true)}
+                disabled={isSaving}
                 className="gap-2"
                 data-testid={isEditing ? "button-save" : "button-edit"}
               >
                 {isEditing ? (
                   <>
                     <Save size={18} />
-                    Save
+                    {isSaving ? "Saving..." : "Save"}
                   </>
                 ) : (
                   <>
