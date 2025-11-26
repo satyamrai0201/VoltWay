@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPrompt from "@/components/LoginPrompt";
+import WelcomeOverlay from "@/components/WelcomeOverlay";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -51,10 +53,25 @@ function Router() {
 }
 
 function App() {
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    // Force welcome to show on every page load
+    setShowWelcome(true);
+    
+    // Auto-hide welcome after animation
+    const timer = setTimeout(() => {
+      setShowWelcome(false);
+    }, 2100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
+        {showWelcome && <WelcomeOverlay />}
         <Router />
       </TooltipProvider>
     </QueryClientProvider>
