@@ -60,18 +60,8 @@ export default function Profile() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest("GET", "/api/logout");
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      window.location.href = "/";
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to logout. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleLogout = () => {
+    window.location.href = "/api/logout";
   };
 
   return (
