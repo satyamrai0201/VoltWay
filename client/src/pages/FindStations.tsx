@@ -216,9 +216,9 @@ export default function FindStations() {
     return true;
   });
 
-  // Show popular stations (first 15) when no filters are applied
+  // Show all stations that pass basic validation
   const hasActiveFilters = searchCity || chargerType !== "all" || minPower !== "all" || showHomeStationsOnly;
-  const displayedStations = hasActiveFilters ? filteredStations : (stations || []).slice(0, 15).filter(hasValidCoordinates);
+  const displayedStations = hasActiveFilters ? filteredStations : (stations || []).filter(hasValidCoordinates);
 
   // Default map center (Gurgaon)
   const defaultCenter: [number, number] = [28.4595, 77.0266];
