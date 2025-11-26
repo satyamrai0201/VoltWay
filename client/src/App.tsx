@@ -17,7 +17,7 @@ import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPrompt from "@/components/LoginPrompt";
-import WelcomeOverlay from "@/components/WelcomeOverlay";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -53,16 +53,16 @@ function Router() {
 }
 
 function App() {
-  const [showWelcome, setShowWelcome] = useState(true);
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
 
   useEffect(() => {
-    // Force welcome to show on every page load
-    setShowWelcome(true);
+    // Show welcome overlay on every page load
+    setShowWelcomeOverlay(true);
     
-    // Auto-hide welcome after animation
+    // Auto-hide after welcome animation completes
     const timer = setTimeout(() => {
-      setShowWelcome(false);
-    }, 2100);
+      setShowWelcomeOverlay(false);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -71,7 +71,19 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        {showWelcome && <WelcomeOverlay />}
+        <AnimatePresence>
+          {showWelcomeOverlay && (
+            <motion.div
+              className="fixed inset-0 z-50"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              style={{ pointerEvents: "auto" }}
+            >
+              <LoginPrompt hideButton={true} />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <Router />
       </TooltipProvider>
     </QueryClientProvider>

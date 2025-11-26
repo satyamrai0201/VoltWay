@@ -5,7 +5,11 @@ import { Zap } from "lucide-react";
 import energyVideoUrl from "@assets/generated_videos/ev_charging_power_energy_vortex.mp4";
 import { playZapSound } from "@/lib/zapSound";
 
-export default function LoginPrompt() {
+interface LoginPromptProps {
+  hideButton?: boolean;
+}
+
+export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
   const [zapTriggered, setZapTriggered] = useState(false);
   const [showContent, setShowContent] = useState(false);
 
@@ -153,21 +157,23 @@ export default function LoginPrompt() {
             Find, book, and manage electric vehicle charging stations with ease. Login to get started.
           </p>
 
-          <div className="flex flex-col gap-4 sm:flex-row justify-center">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                onClick={handleLogin}
-                size="lg"
-                className="bg-lime-400 text-black hover:bg-lime-500 text-lg px-8 py-6"
-                data-testid="button-login"
+          {!hideButton && (
+            <div className="flex flex-col gap-4 sm:flex-row justify-center">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Login to VoltWay
-              </Button>
-            </motion.div>
-          </div>
+                <Button
+                  onClick={handleLogin}
+                  size="lg"
+                  className="bg-lime-400 text-black hover:bg-lime-500 text-lg px-8 py-6"
+                  data-testid="button-login"
+                >
+                  Login to VoltWay
+                </Button>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
