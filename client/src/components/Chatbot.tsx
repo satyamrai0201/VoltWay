@@ -115,7 +115,7 @@ export default function Chatbot() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 hover-elevate active-elevate-2 rounded-full bg-lime-400 text-black p-4 shadow-lg"
+        className="fixed bottom-8 right-8 z-50 hover-elevate active-elevate-2 rounded-full bg-lime-400 text-black p-4 shadow-lg"
         data-testid="button-chatbot-toggle"
       >
         {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
@@ -129,7 +129,7 @@ export default function Chatbot() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-40 w-96 max-h-96 shadow-2xl"
+            className="fixed bottom-24 right-8 z-40 w-96 max-h-96 shadow-2xl"
             data-testid="chatbot-window"
           >
             <Card className="flex flex-col h-full rounded-3xl bg-background border border-lime-400/30">
