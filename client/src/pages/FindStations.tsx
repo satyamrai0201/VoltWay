@@ -439,7 +439,7 @@ export default function FindStations() {
               {displayedStations.map((station) => (
                 <Marker
                   key={station.id}
-                  position={[parseCoordinate(station.latitude), parseCoordinate(station.longitude)]}
+                  position={[parseCoordinate(station.longitude), parseCoordinate(station.latitude)]}
                   icon={station.isHomeStation ? createHomeMarker() : createLimeMarker()}
                 >
                   <Popup>
