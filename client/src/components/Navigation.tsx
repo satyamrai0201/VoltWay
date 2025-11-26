@@ -83,9 +83,9 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
                   className="hover-elevate rounded-full p-1"
                   data-testid="button-profile"
                 >
-                  <Avatar className="h-9 w-9 cursor-pointer">
+                  <Avatar className="h-10 w-10 cursor-pointer border-2 border-lime-400">
                     <AvatarImage src="" />
-                    <AvatarFallback className="bg-lime-400 text-black text-xs font-bold">{getInitials()}</AvatarFallback>
+                    <AvatarFallback className="bg-lime-400 text-black text-sm font-bold">{getInitials()}</AvatarFallback>
                   </Avatar>
                 </button>
                 <AnimatePresence>
