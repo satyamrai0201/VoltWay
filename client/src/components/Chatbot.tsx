@@ -130,12 +130,12 @@ export default function Chatbot() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-8 z-40 w-96 max-h-96 shadow-2xl"
+            className="fixed bottom-24 right-8 z-40 w-96 h-96 shadow-2xl"
             data-testid="chatbot-window"
           >
             <Card className="flex flex-col h-full rounded-3xl bg-background border border-lime-400/30">
               {/* Header */}
-              <div className="bg-gradient-to-r from-lime-400 to-lime-500 text-black p-4 rounded-t-3xl font-bold text-lg flex items-center justify-between">
+              <div className="bg-gradient-to-r from-lime-400 to-lime-500 text-black p-4 rounded-t-3xl font-bold text-lg flex items-center justify-between flex-shrink-0">
                 <span>VoltWay Assistant</span>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -147,7 +147,7 @@ export default function Chatbot() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 overflow-hidden p-4">
                 <div className="space-y-3">
                   {messages.map((message) => (
                     <motion.div
@@ -188,7 +188,7 @@ export default function Chatbot() {
               </ScrollArea>
 
               {/* Input */}
-              <div className="p-4 border-t flex gap-2">
+              <div className="p-4 border-t flex gap-2 flex-shrink-0">
                 <Input
                   placeholder="Ask me anything..."
                   value={input}
