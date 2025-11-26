@@ -194,30 +194,6 @@ export default function Profile() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Account Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="font-medium">Host Status</p>
-                  <p className="text-sm text-muted-foreground">
-                    {user?.isHost ? "You are an active host" : "Start hosting charging stations to earn revenue"}
-                  </p>
-                </div>
-                <Badge variant="outline" data-testid="badge-host-status">
-                  {user?.isHost ? "Active Host" : "Not a Host"}
-                </Badge>
-              </div>
-              {!user?.isHost && (
-                <Button asChild variant="outline" className="w-full" data-testid="button-become-host">
-                  <Link href="/host/new">Become a Host</Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle>Account Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
