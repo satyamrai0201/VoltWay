@@ -1,6 +1,7 @@
 import { 
   type User, 
   type InsertUser,
+  type UpsertUser,
   type Station,
   type InsertStation,
   type Booking,
@@ -14,6 +15,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User | undefined>;
   
   getAllStations(): Promise<Station[]>;
@@ -716,25 +718,52 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
+    const now = new Date();
     const user: User = { 
       email: insertUser.email,
       firstName: insertUser.firstName ?? null,
       lastName: insertUser.lastName ?? null,
-      avatarUrl: insertUser.avatarUrl ?? null,
+      profileImageUrl: null,
       phoneNumber: insertUser.phoneNumber ?? null,
       id,
       isHost: insertUser.isHost ?? false,
       stripeCustomerId: insertUser.stripeCustomerId ?? null,
-      createdAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     };
     this.users.set(id, user);
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    let user = this.users.get(userData.id);
+    const now = new Date();
+    
+    if (!user) {
+      // Create new user
+      user = {
+        ...userData,
+        id: userData.id,
+        createdAt: now,
+        updatedAt: now,
+      } as User;
+    } else {
+      // Update existing user
+      user = {
+        ...user,
+        ...userData,
+        updatedAt: now,
+      };
+    }
+    
+    this.users.set(userData.id, user);
     return user;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
-    const updated = { ...user, ...updates };
+    const updated = { ...user, ...updates, updatedAt: new Date() };
     this.users.set(id, updated);
     return updated;
   }

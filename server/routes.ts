@@ -3,37 +3,29 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertStationSchema, insertBookingSchema, insertReviewSchema } from "@shared/schema";
 import { z } from "zod";
-import session from "express-session";
-import MemoryStore from "memorystore";
 import { geocodeAddress, buildAddress } from "./geocoding";
-
-const MemStore = MemoryStore(session) as any;
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 declare global {
   namespace Express {
     interface User {
-      id: string;
+      id?: string;
+      claims?: any;
+      access_token?: string;
+      refresh_token?: string;
+      expires_at?: number;
     }
   }
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Session middleware for auth
-  app.use(
-    session({
-      store: new MemStore(),
-      secret: process.env.SESSION_SECRET || "dev-secret-key",
-      resave: false,
-      saveUninitialized: false,
-      cookie: { secure: false, httpOnly: true },
-    })
-  );
+  // Setup Replit Auth with OAuth
+  await setupAuth(app);
 
   // Auth endpoints
-  app.get("/api/auth/user", async (req: Request & { user?: any; session?: any }, res) => {
+  app.get("/api/auth/user", isAuthenticated, async (req: Request & { user?: any }, res) => {
     try {
-      // Check session first, then user object
-      const userId = (req.session as any)?.userId || req.user?.id;
+      const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
@@ -44,34 +36,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch user" });
-    }
-  });
-
-  // Mock login endpoint for demo purposes
-  app.get("/api/login", async (req: Request & { user?: any; session?: any }, res) => {
-    try {
-      // For demo, log in as the first sample user
-      req.user = { id: "sample-user-1" };
-      if (req.session) {
-        req.session.userId = "sample-user-1";
-      }
-      // Redirect to home after login
-      res.redirect("/");
-    } catch (error) {
-      res.status(500).json({ error: "Login failed" });
-    }
-  });
-
-  // Logout endpoint
-  app.get("/api/logout", (req: any, res) => {
-    if (req.session) {
-      req.session.destroy((err: any) => {
-        if (err) return res.status(500).json({ error: "Logout failed" });
-        res.clearCookie("connect.sid");
-        res.json({ message: "Logged out successfully" });
-      });
-    } else {
-      res.json({ message: "Logged out successfully" });
     }
   });
 
