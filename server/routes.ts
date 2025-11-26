@@ -5,6 +5,7 @@ import { insertStationSchema, insertBookingSchema, insertReviewSchema } from "@s
 import { z } from "zod";
 import session from "express-session";
 import MemoryStore from "memorystore";
+import { geocodeAddress, buildAddress } from "./geocoding";
 
 const MemStore = MemoryStore(session) as any;
 
@@ -109,7 +110,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/stations", async (req, res) => {
     try {
       const validatedData = insertStationSchema.parse(req.body);
-      const station = await storage.createStation(validatedData);
+      
+      // Geocode the address to get accurate coordinates
+      const fullAddress = buildAddress(validatedData.address, validatedData.city, validatedData.state);
+      const geocoded = await geocodeAddress(fullAddress);
+      
+      // Use geocoded coordinates if available, otherwise use provided ones
+      const stationData = {
+        ...validatedData,
+        latitude: geocoded?.latitude || validatedData.latitude,
+        longitude: geocoded?.longitude || validatedData.longitude,
+      };
+      
+      const station = await storage.createStation(stationData);
       res.status(201).json(station);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -121,7 +134,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/stations/:id", async (req, res) => {
     try {
-      const station = await storage.updateStation(req.params.id, req.body);
+      let updateData = req.body;
+      
+      // If address, city, or state is being updated, geocode it
+      if (updateData.address || updateData.city || updateData.state) {
+        const existingStation = await storage.getStation(req.params.id);
+        if (existingStation) {
+          const address = updateData.address || existingStation.address;
+          const city = updateData.city || existingStation.city;
+          const state = updateData.state || existingStation.state;
+          
+          const fullAddress = buildAddress(address, city, state);
+          const geocoded = await geocodeAddress(fullAddress);
+          
+          if (geocoded) {
+            updateData = {
+              ...updateData,
+              latitude: geocoded.latitude,
+              longitude: geocoded.longitude,
+            };
+          }
+        }
+      }
+      
+      const station = await storage.updateStation(req.params.id, updateData);
       if (!station) {
         return res.status(404).json({ error: "Station not found" });
       }
