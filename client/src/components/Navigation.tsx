@@ -14,23 +14,34 @@ interface NavigationProps {
 }
 
 export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const isLoggedIn = propIsLoggedIn !== undefined ? propIsLoggedIn : isAuthenticated;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const getInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    }
+    if (user?.firstName) {
+      return user.firstName[0].toUpperCase();
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase();
+    }
+    return "U";
+  };
 
   const navLinks = [
     { label: "Stations", href: "/find-stations" },
     { label: "Bookings", href: "/bookings" },
     { label: "Dashboard", href: "/host/dashboard" },
-    { label: "Profile", href: "/profile" },
   ];
 
   const mobileNavLinks = [
     { label: "Find Stations", href: "/find-stations" },
     { label: "My Bookings", href: "/bookings" },
     { label: "Host Dashboard", href: "/host/dashboard" },
-    { label: "Profile", href: "/profile" },
     { label: "Become a Host", href: "/host/new" },
   ];
 
@@ -72,9 +83,9 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
                   className="hover-elevate rounded-full p-1"
                   data-testid="button-profile"
                 >
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-9 w-9 cursor-pointer">
                     <AvatarImage src="" />
-                    <AvatarFallback className="bg-lime-400 text-black text-xs font-bold">J</AvatarFallback>
+                    <AvatarFallback className="bg-lime-400 text-black text-xs font-bold">{getInitials()}</AvatarFallback>
                   </Avatar>
                 </button>
                 <AnimatePresence>
