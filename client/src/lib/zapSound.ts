@@ -19,7 +19,7 @@ export function playZapSound() {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
-    const duration = 2;
+    const duration = 3;
     const fadeInDuration = 0.15;
     const fadeOutStart = duration - 0.25;
 
