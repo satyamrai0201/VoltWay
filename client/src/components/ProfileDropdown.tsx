@@ -2,15 +2,12 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { User, Bookmark, Calendar, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileDropdownProps {
   onClose: () => void;
 }
 
 export default function ProfileDropdown({ onClose }: ProfileDropdownProps) {
-  const { logout } = useAuth();
-
   const menuItems = [
     { icon: User, label: "My Profile", href: "/profile" },
   ];
@@ -19,9 +16,9 @@ export default function ProfileDropdown({ onClose }: ProfileDropdownProps) {
     onClose();
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     onClose();
-    await logout();
+    window.location.href = "/api/logout";
   };
 
   return (
