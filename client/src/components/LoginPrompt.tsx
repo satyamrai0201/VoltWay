@@ -88,17 +88,19 @@ export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4 bg-black">
+      <div className="absolute inset-0 bg-black" />
       <video
         autoPlay
         muted
         loop
         playsInline
         className="absolute inset-0 w-full h-full object-cover"
+        preload="auto"
       >
         <source src={energyVideoUrl} type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-gradient-to-br from-background/60 via-background/70 to-accent/30" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/70 to-lime-900/30" />
 
       {/* Lightning effect background */}
       {zapTriggered && (

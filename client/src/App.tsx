@@ -74,7 +74,7 @@ function App() {
         <AnimatePresence>
           {showWelcomeOverlay && (
             <motion.div
-              className="fixed inset-0 z-50"
+              className="fixed inset-0 z-50 bg-black"
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -84,7 +84,7 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
-        <Router />
+        {!showWelcomeOverlay && <Router />}
       </TooltipProvider>
     </QueryClientProvider>
   );
