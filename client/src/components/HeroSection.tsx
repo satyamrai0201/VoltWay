@@ -108,22 +108,6 @@ export default function HeroSection({ onHowItWorksClick, onGetStartedClick }: He
           </motion.div>
         </div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, delay: 0.8 }}
-        className="fixed bottom-8 right-8 z-40 hidden lg:block"
-      >
-        <Button
-          size="icon"
-          onClick={onHowItWorksClick}
-          className="h-20 w-20 rounded-full bg-primary hover:bg-primary/90 shadow-2xl text-primary-foreground"
-          data-testid="button-floating-how-it-works"
-        >
-          <Play size={24} className="fill-current" />
-        </Button>
-      </motion.div>
     </section>
   );
 }
