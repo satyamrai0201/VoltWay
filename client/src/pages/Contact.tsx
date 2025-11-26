@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
+      <Navigation />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Contact Us</h1>

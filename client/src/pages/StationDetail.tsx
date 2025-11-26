@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import Navigation from "@/components/Navigation";
 import type { Station, Review, Booking } from "@shared/schema";
 import { Link } from "wouter";
 

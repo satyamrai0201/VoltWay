@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { MessageSquare, MailIcon, MapPin } from "lucide-react";
+import Navigation from "@/components/Navigation";
 
 export default function Help() {
   const faqs = [
@@ -31,6 +32,7 @@ export default function Help() {
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-16">
+      <Navigation />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Help Center</h1>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
 
 export default function Profile() {
   const { toast } = useToast();
@@ -25,7 +26,8 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-20">
+      <Navigation />
       <div className="container mx-auto px-6 py-12 max-w-4xl">
         <div className="space-y-8">
           <div className="space-y-4">
