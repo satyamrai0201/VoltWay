@@ -17,6 +17,7 @@ import Contact from "@/pages/Contact";
 import NotFound from "@/pages/not-found";
 import { useAuth } from "@/hooks/useAuth";
 import LoginPrompt from "@/components/LoginPrompt";
+import Chatbot from "@/components/Chatbot";
 import { motion, AnimatePresence } from "framer-motion";
 
 function Router() {
@@ -71,6 +72,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
+        <Chatbot />
         <AnimatePresence>
           {showWelcomeOverlay && (
             <motion.div
