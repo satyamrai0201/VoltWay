@@ -65,6 +65,25 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
                 {link.label}
               </Link>
             ))}
+            {isLoggedIn && (
+              <div className="relative ml-2">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="hover-elevate rounded-full p-2"
+                  data-testid="button-profile"
+                >
+                  <Avatar className="h-10 w-10 cursor-pointer border-2 border-lime-400">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="bg-lime-400 text-black text-sm font-bold">{getInitials()}</AvatarFallback>
+                  </Avatar>
+                </button>
+                <AnimatePresence>
+                  {profileOpen && (
+                    <ProfileDropdown onClose={() => setProfileOpen(false)} />
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3 ml-auto">
@@ -77,11 +96,11 @@ export default function Navigation({ isLoggedIn: propIsLoggedIn }: NavigationPro
             </button>
 
             {isLoggedIn ? (
-              <div className="relative">
+              <div className="relative md:hidden">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="hover-elevate rounded-full p-1"
-                  data-testid="button-profile"
+                  data-testid="button-profile-mobile"
                 >
                   <Avatar className="h-10 w-10 cursor-pointer border-2 border-lime-400">
                     <AvatarImage src="" />
