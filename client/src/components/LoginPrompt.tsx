@@ -15,7 +15,7 @@ export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
 
   // Trigger zap animation and sound on mount
   useEffect(() => {
-    // Play sound on first user interaction
+    // Resume audio context on user interaction first
     const handleFirstInteraction = () => {
       playZapSound();
       document.removeEventListener('click', handleFirstInteraction);
@@ -24,7 +24,10 @@ export default function LoginPrompt({ hideButton = false }: LoginPromptProps) {
 
     const timer = setTimeout(() => {
       setZapTriggered(true);
-      // Setup play on first interaction
+      // Try to play sound immediately
+      playZapSound();
+      
+      // Also setup fallback - play on first interaction if needed
       document.addEventListener('click', handleFirstInteraction);
       document.addEventListener('touchstart', handleFirstInteraction);
     }, 300);
