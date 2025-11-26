@@ -1,6 +1,6 @@
 /**
- * Generate an electronics power-up sound using Web Audio API
- * Mimics the mixkit power-up sound with rising frequencies and digital character
+ * Generate a realistic electric charge sound using Web Audio API
+ * Mimics actual electrical discharge with crackling, buzzing, and arcing
  */
 
 let audioContext: AudioContext | null = null;
@@ -19,85 +19,83 @@ export function playZapSound() {
   try {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
-    const duration = 0.6;
+    const duration = 0.5;
 
-    // Main rising tone - primary frequency sweep (power-up effect)
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
+    // Sharp high-frequency buzz - main electric sound
+    const buzzOsc = ctx.createOscillator();
+    const buzzGain = ctx.createGain();
+    const buzzFilter = ctx.createBiquadFilter();
 
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(400, now);
-    osc1.frequency.exponentialRampToValueAtTime(1200, now + duration * 0.6);
-    osc1.frequency.linearRampToValueAtTime(900, now + duration);
+    buzzOsc.connect(buzzFilter);
+    buzzFilter.connect(buzzGain);
+    buzzGain.connect(ctx.destination);
 
-    gain1.gain.setValueAtTime(0.3, now);
-    gain1.gain.exponentialRampToValueAtTime(0.1, now + duration);
+    buzzOsc.type = 'sawtooth'; // Sawtooth has more harmonics for electric buzz
+    buzzOsc.frequency.setValueAtTime(150, now);
+    buzzOsc.frequency.exponentialRampToValueAtTime(50, now + duration * 0.8);
 
-    // Secondary harmonic tone - adds richness
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
+    buzzGain.gain.setValueAtTime(0.4, now);
+    buzzGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-    osc2.type = 'triangle';
-    osc2.frequency.setValueAtTime(800, now);
-    osc2.frequency.exponentialRampToValueAtTime(1800, now + duration * 0.5);
-    osc2.frequency.linearRampToValueAtTime(1400, now + duration);
+    buzzFilter.type = 'highpass';
+    buzzFilter.frequency.setValueAtTime(1500, now);
+    buzzFilter.Q.setValueAtTime(2, now);
 
-    gain2.gain.setValueAtTime(0.25, now);
-    gain2.gain.exponentialRampToValueAtTime(0.05, now + duration);
+    buzzOsc.start(now);
+    buzzOsc.stop(now + duration);
 
-    // Third tone for digital character
-    const osc3 = ctx.createOscillator();
-    const gain3 = ctx.createGain();
-    osc3.connect(gain3);
-    gain3.connect(ctx.destination);
+    // High-frequency crackle layer - electrical arcing
+    const crackleOsc = ctx.createOscillator();
+    const crackleGain = ctx.createGain();
+    const crackleFilter = ctx.createBiquadFilter();
 
-    osc3.type = 'square';
-    osc3.frequency.setValueAtTime(1200, now);
-    osc3.frequency.exponentialRampToValueAtTime(2400, now + duration * 0.7);
-    osc3.frequency.linearRampToValueAtTime(1600, now + duration);
+    crackleOsc.connect(crackleFilter);
+    crackleFilter.connect(crackleGain);
+    crackleGain.connect(ctx.destination);
 
-    gain3.gain.setValueAtTime(0.15, now);
-    gain3.gain.exponentialRampToValueAtTime(0.02, now + duration);
+    crackleOsc.type = 'square'; // Square wave for digital crackling
+    crackleOsc.frequency.setValueAtTime(8000, now);
+    crackleOsc.frequency.exponentialRampToValueAtTime(4000, now + duration * 0.4);
 
-    // Quick pulse effect at start
-    const pulseGain = ctx.createGain();
-    osc1.connect(pulseGain);
-    pulseGain.connect(ctx.destination);
-    pulseGain.gain.setValueAtTime(0, now);
-    pulseGain.gain.linearRampToValueAtTime(0.2, now + 0.05);
-    pulseGain.gain.exponentialRampToValueAtTime(0.02, now + duration);
+    crackleGain.gain.setValueAtTime(0.3, now);
+    crackleGain.gain.exponentialRampToValueAtTime(0.02, now + duration * 0.5);
+    crackleGain.gain.setValueAtTime(0, now + duration * 0.5);
 
-    // Start and stop oscillators
-    osc1.start(now);
-    osc1.stop(now + duration);
-    osc2.start(now);
-    osc2.stop(now + duration);
-    osc3.start(now + 0.05);
-    osc3.stop(now + duration);
+    crackleFilter.type = 'highpass';
+    crackleFilter.frequency.setValueAtTime(5000, now);
+    crackleFilter.Q.setValueAtTime(6, now);
 
-    // Add subtle noise for electronic crackling
-    createElectronicNoise(ctx, now, duration);
+    crackleOsc.start(now);
+    crackleOsc.stop(now + duration * 0.5);
 
-    console.log('Zap sound played successfully');
+    // Electrical noise/white noise crackle
+    createElectricalNoise(ctx, now, duration);
+
+    console.log('Electric charge sound played');
   } catch (error) {
-    console.log('Audio playback error:', error);
+    console.log('Audio error:', error);
   }
 }
 
-function createElectronicNoise(ctx: AudioContext, startTime: number, duration: number) {
+function createElectricalNoise(ctx: AudioContext, startTime: number, duration: number) {
   try {
-    // Create noise buffer for electronic crackle
     const bufferSize = ctx.sampleRate * duration;
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const noiseData = noiseBuffer.getChannelData(0);
 
-    // Fill with filtered random noise
-    for (let i = 0; i < bufferSize; i++) {
-      noiseData[i] = Math.random() * 2 - 1;
+    // Create bursts of noise for crackling effect
+    let burstLength = ctx.sampleRate * 0.02; // 20ms bursts
+    let position = 0;
+
+    while (position < bufferSize) {
+      // Silence
+      for (let i = 0; i < burstLength * 0.3 && position < bufferSize; i++) {
+        noiseData[position++] = 0;
+      }
+      // Noise burst
+      for (let i = 0; i < burstLength * 0.7 && position < bufferSize; i++) {
+        noiseData[position++] = (Math.random() * 2 - 1) * (1 - position / bufferSize); // Fade out
+      }
     }
 
     const noiseSource = ctx.createBufferSource();
@@ -110,19 +108,18 @@ function createElectronicNoise(ctx: AudioContext, startTime: number, duration: n
     noiseFilter.connect(noiseGain);
     noiseGain.connect(ctx.destination);
 
-    // High-pass filter for electronic character
+    // Very high-pass for electric crackle
     noiseFilter.type = 'highpass';
-    noiseFilter.frequency.setValueAtTime(2000, startTime);
-    noiseFilter.frequency.exponentialRampToValueAtTime(4000, startTime + duration * 0.6);
-    noiseFilter.Q.setValueAtTime(8, startTime);
+    noiseFilter.frequency.setValueAtTime(3000, startTime);
+    noiseFilter.frequency.exponentialRampToValueAtTime(6000, startTime + duration * 0.3);
+    noiseFilter.Q.setValueAtTime(10, startTime);
 
-    // Noise envelope
-    noiseGain.gain.setValueAtTime(0.15, startTime);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, startTime + duration * 0.7);
+    noiseGain.gain.setValueAtTime(0.4, startTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.05, startTime + duration);
 
     noiseSource.start(startTime);
     noiseSource.stop(startTime + duration);
   } catch (error) {
-    console.log('Noise generation failed:', error);
+    console.log('Noise generation error:', error);
   }
 }
